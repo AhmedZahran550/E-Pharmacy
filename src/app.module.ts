@@ -40,6 +40,7 @@ import { DBExceptionFilter } from './common/filters/db-exception.filter';
 import { GlobalSearchModule } from './modules/global-search/global-search.module';
 import { AppController } from './app.controller';
 import { LogsModule } from './modules/logs/logs.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 const envFolderPath = `${__dirname}/config/env`;
 
 const envFilePath = [
@@ -107,6 +108,8 @@ const envFilePath = [
     CartModule,
     EmailModule,
     GlobalSearchModule,
+    NotificationsModule,
+    LogsModule,
   ],
   providers: [
     {
