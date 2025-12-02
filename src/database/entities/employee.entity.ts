@@ -13,7 +13,6 @@ import {
 import { DateColumn } from '../../common/decorators/date-column.decorator';
 import { Role } from '../../modules/auth/role.model';
 import { BaseEntity } from './base.entity';
-import { Customer } from './customer.entity';
 import { Branch } from './branch.entity';
 import { Exclude } from 'class-transformer';
 import { SystemNotification } from './system-notification.entity';
@@ -53,16 +52,6 @@ export class Employee extends BaseEntity {
 
   @Column({ name: 'last_name' })
   lastName: string;
-
-  @ManyToOne(() => Customer, (customer) => customer.employees, {
-    nullable: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'customer_id' })
-  customer: Customer;
-
-  @Column({ nullable: true })
-  customerId: string;
 
   @Column({ nullable: true, default: false })
   disabled?: boolean;

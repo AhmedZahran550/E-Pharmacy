@@ -33,12 +33,4 @@ export class ProviderCartController {
   ) {
     return this.cartService.softDeleteCart(cartId, deletedByUser);
   }
-
-  @Post(':cartId/checkout')
-  async checkout(
-    @Param('cartId') cartId: string,
-    @AuthUser() user: AuthUserDto,
-  ) {
-    return this.cartService.checkoutByProvider(cartId, user);
-  }
 }

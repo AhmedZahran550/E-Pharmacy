@@ -7,7 +7,6 @@ import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { DateColumn } from '../../common/decorators/date-column.decorator';
 import { BaseEntity } from './base.entity';
 import { Order } from './order.entity';
-import { Customer } from './customer.entity';
 import { Provider } from './provider.entity';
 import { Branch } from './branch.entity';
 import { ClosingBill } from './closing-bill.entity';
@@ -67,13 +66,6 @@ export class SystemNotification extends BaseEntity {
   })
   @JoinColumn()
   branch?: Partial<Branch>;
-
-  @ManyToOne(() => Customer, (customer) => customer.notifications, {
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
-  @JoinColumn()
-  customer?: Partial<Customer>;
 
   @ManyToOne(() => Provider, (provider) => provider.notifications, {
     onDelete: 'CASCADE',

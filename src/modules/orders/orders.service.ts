@@ -3,7 +3,6 @@ import { DBService } from '@/database/db.service';
 import { OrderOtp } from '@/database/entities/order-otp.entity';
 import { Order, OrderStatus } from '@/database/entities/order.entity';
 import { TransactionStatus } from '@/database/entities/transaction.entity';
-import { OrderOtpService } from '@/modules/orders/order-otp.service';
 import {
   ConflictException,
   Injectable,
@@ -31,7 +30,6 @@ import { ErrorCodes } from '@/common/error-codes';
 import { LocalizationService } from '@/i18n/localization.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { handleError } from '@/database/db.errors';
-import { OrderHistoryService } from './order-history.service';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { OrderAction } from './dto/order-action.dto';
 
@@ -65,10 +63,8 @@ export class OrdersService extends DBService<Order> {
     @InjectRepository(Order)
     protected repository: Repository<Order>,
     private dataSource: DataSource,
-    private orderOtpService: OrderOtpService,
     private notificationsService: NotificationsService,
     private readonly i18n: LocalizationService,
-    private orderHistoryService: OrderHistoryService,
   ) {
     super(repository, ORDERS_PAGINATION_CONFIG);
   }
@@ -152,9 +148,9 @@ export class OrdersService extends DBService<Order> {
     return { otp, expiresAt };
   }
 
-  async isOrderOtpVerified(order: Order): Promise<boolean> {
-    return this.orderOtpService.isOrderOtpVerified(order);
-  }
+  // async isOrderOtpVerified(order: Order): Promise<boolean> {
+  //   return this.orderOtpService.isOrderOtpVerified(order);
+  // }
 
   async findByProvider(providerId: string, query: QueryOptions) {
     const qb = this.repository
@@ -241,13 +237,13 @@ export class OrdersService extends DBService<Order> {
       if (order.branch.provider.requireOrderOTP) {
         order.status = OrderStatus.PENDING_VERIFICATION;
       }
-      await this.orderHistoryService.trackOrderHistory(
-        entityManager,
-        order,
-        OrderStatus.PENDING_PAYMENT,
-        order.status,
-        updatedBy,
-      );
+      // await this.orderHistoryService.trackOrderHistory(
+      //   entityManager,
+      //   order,
+      //   OrderStatus.PENDING_PAYMENT,
+      //   order.status,
+      //   updatedBy,
+      // );
     }
     await (entityManager ?? this.repository.manager).update(Order, order.id, {
       status: order.status,
@@ -292,20 +288,20 @@ export class OrdersService extends DBService<Order> {
         ...order.metadata,
         deletedBy: requestedBy.id,
       };
-      await this.orderHistoryService.trackOrderHistory(
-        queryRunner.manager,
-        order,
-        previousStatus,
-        OrderStatus.REJECTED,
-        requestedBy.id,
-        reason,
-      );
-      await this.notificationsService.sendOrderStatusNotification({
-        queryRunner,
-        order,
-        action: OrderAction.REJECT,
-        reason,
-      });
+      // await this.orderHistoryService.trackOrderHistory(
+      //   queryRunner.manager,
+      //   order,
+      //   previousStatus,
+      //   OrderStatus.REJECTED,
+      //   requestedBy.id,
+      //   reason,
+      // );
+      // await this.notificationsService.sendOrderStatusNotification({
+      //   queryRunner,
+      //   order,
+      //   action: OrderAction.REJECT,
+      //   reason,
+      // });
       const savedOrder = await queryRunner.manager.save(Order, order);
       await queryRunner.commitTransaction();
       return savedOrder;
@@ -348,20 +344,20 @@ export class OrdersService extends DBService<Order> {
         ...order.metadata,
         deletedBy: requestedBy.id,
       };
-      await this.orderHistoryService.trackOrderHistory(
-        queryRunner.manager,
-        order,
-        previousStatus,
-        OrderStatus.CANCELED,
-        requestedBy.id,
-        `Order canceled by ${requestedBy.firstName} - ${reason || 'No reason provided'}`,
-      );
-      await this.notificationsService.sendOrderStatusNotification({
-        queryRunner,
-        order,
-        action: OrderAction.CANCEL,
-        reason,
-      });
+      // await this.orderHistoryService.trackOrderHistory(
+      //   queryRunner.manager,
+      //   order,
+      //   previousStatus,
+      //   OrderStatus.CANCELED,
+      //   requestedBy.id,
+      //   `Order canceled by ${requestedBy.firstName} - ${reason || 'No reason provided'}`,
+      // );
+      // await this.notificationsService.sendOrderStatusNotification({
+      //   queryRunner,
+      //   order,
+      //   action: OrderAction.CANCEL,
+      //   reason,
+      // });
       const savedOrder = await queryRunner.manager.save(Order, order);
       await queryRunner.commitTransaction();
       return savedOrder;
@@ -382,20 +378,20 @@ export class OrdersService extends DBService<Order> {
         },
         relations: ['user.customer', 'branch'],
       });
-      await this.orderHistoryService.trackOrderHistory(
-        queryRunner.manager,
-        order,
-        order.status,
-        OrderStatus.PENDING_PAYMENT,
-        user.id,
-        'Order approved by the Pharmacy Admin',
-      );
+      // await this.orderHistoryService.trackOrderHistory(
+      //   queryRunner.manager,
+      //   order,
+      //   order.status,
+      //   OrderStatus.PENDING_PAYMENT,
+      //   user.id,
+      //   'Order approved by the Pharmacy Admin',
+      // );
       order.status = OrderStatus.PENDING_PAYMENT;
-      await this.notificationsService.sendOrderStatusNotification({
-        queryRunner,
-        order,
-        action: OrderAction.APPROVE,
-      });
+      // await this.notificationsService.sendOrderStatusNotification({
+      //   queryRunner,
+      //   order,
+      //   action: OrderAction.APPROVE,
+      // });
       return await queryRunner.manager.save(Order, order);
     } catch (error) {
       await queryRunner.rollbackTransaction();

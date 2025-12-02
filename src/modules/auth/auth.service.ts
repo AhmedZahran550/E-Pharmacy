@@ -102,7 +102,7 @@ export class AuthService {
     authUser: AuthUserDto,
   ) {
     const currentUser = await this.usersService.findById(authUser.id, {
-      select: ['identityConfirmedTrials', 'nationalId', 'passportId', 'id'],
+      select: ['identityConfirmedTrials', 'nationalId', 'id'],
     });
 
     if (currentUser.identityConfirmedTrials > 3) {
@@ -115,10 +115,7 @@ export class AuthService {
     }
     const identityId = hmacHashing(data.identityId);
     if (data.identityConfirmed) {
-      if (
-        identityId === currentUser.nationalId ||
-        identityId === currentUser.passportId
-      ) {
+      if (identityId === currentUser.nationalId) {
         await this.usersService.update(authUser.id, {
           identityConfirmed: true,
         });
@@ -178,20 +175,14 @@ export class AuthService {
   async checkUserExists(signUpDto: SignUpDto) {
     const nationalId =
       signUpDto.nationalId && hmacHashing(signUpDto.nationalId);
-    const passportId =
-      signUpDto.passportId && hmacHashing(signUpDto.passportId);
     const qb = this.usersService.repository
       .createQueryBuilder('user')
       .addSelect('user.nationalId')
       .addSelect('user.passportId')
-      .where(
-        'user.nationalId = :nationalId OR user.passportId = :passportId OR user.mobile = :mobile',
-        {
-          nationalId,
-          passportId,
-          mobile: signUpDto.mobile,
-        },
-      );
+      .where('user.nationalId = :nationalId  OR user.mobile = :mobile', {
+        nationalId,
+        mobile: signUpDto.mobile,
+      });
     const existingUsers = await qb.getMany();
     if (existingUsers.length > 0) {
       for (const user of existingUsers) {
@@ -200,14 +191,6 @@ export class AuthService {
             {
               property: 'nationalId',
               code: ErrorCodes.NATIONAL_ID_ALREADY_EXISTS,
-            },
-          ]);
-        }
-        if (passportId && user.passportId === passportId && user.idVerified) {
-          throw new BadRequestException([
-            {
-              property: 'passportId',
-              code: ErrorCodes.PASSPORT_ID_ALREADY_EXISTS,
             },
           ]);
         }
@@ -256,7 +239,6 @@ export class AuthService {
     user.id = uuid();
     user.roles = [Role.GUEST];
     const payload: TokenPayload = {
-      familyId: user.familyId,
       sub: user.id,
       roles: user.roles,
       clients: [Client.MOBILE_APP],
@@ -424,11 +406,7 @@ export class AuthService {
 
   private async getAuthResponse(user: User) {
     let subscriptions = user.subscriptions;
-    if (user?.owner?.subscriptions?.length > 0) {
-      subscriptions = user.owner.subscriptions;
-    }
     if (
-      user.type === UserType.CORPORATE &&
       !subscriptions?.some((sub) => sub.status === SubscriptionStatus.ACTIVE)
     ) {
       throw new ForbiddenException({
@@ -438,7 +416,6 @@ export class AuthService {
     }
     const lastSubscription = subscriptions[0];
     delete user.subscriptions;
-    delete user.owner;
     this.verifyUserAccess(user);
     if (!user.mobileVerified) {
       user.mobileVerified = true;
@@ -448,9 +425,6 @@ export class AuthService {
     const authUser = new AuthUserDto(user);
     const payload: TokenPayload = {
       sub: user.id,
-      familyId: user.familyId,
-      customerId: user.customerId,
-      isFamilyManager: user.isFamilyManager,
       roles: user.roles,
       clients: [Client.MOBILE_APP],
     };
@@ -580,7 +554,6 @@ export class AuthService {
         roles: employee.roles,
         policies,
         email: employee.email,
-        customerId: employee.customer.id,
         clients: [Client.CUSTOMER],
       };
     } else if (employee.roles.includes(Role.PROVIDER_USER)) {

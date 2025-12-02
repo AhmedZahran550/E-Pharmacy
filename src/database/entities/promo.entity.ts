@@ -1,6 +1,5 @@
 import { Check, Column, Entity, Index } from 'typeorm';
 import { DateColumn } from '../../common/decorators/date-column.decorator';
-import { PromoType } from '../../modules/promos/dto/Promo-type.model';
 import { BaseEntity } from './base.entity';
 
 @Entity({ name: 'promo' })
@@ -12,13 +11,6 @@ export class Promo extends BaseEntity {
 
   @Column({ unique: true })
   code: string;
-
-  @Column({
-    type: 'enum',
-    enum: PromoType,
-  })
-  @Index()
-  type: PromoType; // Use the enum type
 
   @Column({ nullable: true })
   description: string;

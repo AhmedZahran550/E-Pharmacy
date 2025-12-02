@@ -33,7 +33,6 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PostAuthorizeInterceptor } from '@/common/interceptors/post-authorize.interceptor';
 import { MetadataInterceptor } from '@/common/interceptors/metadata.interceptor';
 import { CacheModule } from '@nestjs/cache-manager';
-import { CustomersModule } from './modules/customers/customers.module';
 import { cacheConfigFactory } from './common/cacheManager.config';
 import { EmailModule } from './common/mailer/email.module';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
@@ -106,7 +105,6 @@ const envFilePath = [
     LocalizationModule,
     OrdersModule,
     CartModule,
-    CustomersModule,
     EmailModule,
     GlobalSearchModule,
   ],

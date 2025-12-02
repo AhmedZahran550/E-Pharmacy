@@ -11,7 +11,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { v4 as uuidv4 } from 'uuid';
 
 export const USER_PAGINATION_CONFIG: QueryConfig<User> = {
-  sortableColumns: ['email', 'firstName', 'lastName', 'type', 'mobile', 'code'],
+  sortableColumns: ['email', 'firstName', 'lastName', 'mobile', 'code'],
   filterableColumns: {
     email: [FilterOperator.ILIKE],
     id: [FilterOperator.EQ],

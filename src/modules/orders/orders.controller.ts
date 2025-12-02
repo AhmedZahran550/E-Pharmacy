@@ -15,10 +15,8 @@ import { Role } from '../auth/role.model';
 import { OrderAction, OrderActionDto } from './dto/order-action.dto';
 import { AuthUser } from '../auth/decorators/auth-user.decorator';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
-import { ItemsOrdersService } from './items-orders.service';
 import { ErrorCodes } from '@/common/error-codes';
 import { CreateOrderPaymentsDto } from './dto/orderPayments.dto';
-import { WebHookService } from '../transactions/webHook-transaction.service';
 import {
   PayerType,
   Payment,
@@ -32,11 +30,7 @@ import { BranchRatingDto } from '../branches/dto/branch-rating.dto';
 
 @Controller('orders')
 export class OrdersController {
-  constructor(
-    private readonly ordersService: OrdersService,
-    private readonly itemOrdersService: ItemsOrdersService,
-    private readonly webHookService: WebHookService,
-  ) {}
+  constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
   @Roles(Role.APP_USER)
@@ -55,31 +49,31 @@ export class OrdersController {
     return this.ordersService.remove(id);
   }
 
-  @Roles(Role.APP_USER)
-  @Post(':id/payments')
-  async orderPayment(
-    @Param('id') id: string,
-    @Body() orderPaymentsDto: CreateOrderPaymentsDto,
-    @AuthUser() user: AuthUserDto,
-  ) {
-    orderPaymentsDto.payerType = PayerType.USER;
-    let payment: Payment = await this.itemOrdersService.createOrderPayment(
-      orderPaymentsDto,
-      id,
-      user,
-    );
-    const onLineTransaction = payment.transactions.find(
-      (t) => t.type === TransactionType.ONLINE_PAYMENT,
-    );
-    if (onLineTransaction) {
-      return await this.webHookService.handleWebhook({
-        status: TransactionStatus.SUCCEEDED,
-        amount: onLineTransaction.amount,
-        referenceId: onLineTransaction.id,
-      });
-    }
-    return payment;
-  }
+  // @Roles(Role.APP_USER)
+  // @Post(':id/payments')
+  // async orderPayment(
+  //   @Param('id') id: string,
+  //   @Body() orderPaymentsDto: CreateOrderPaymentsDto,
+  //   @AuthUser() user: AuthUserDto,
+  // ) {
+  //   orderPaymentsDto.payerType = PayerType.USER;
+  //   let payment: Payment = await this.itemOrdersService.createOrderPayment(
+  //     orderPaymentsDto,
+  //     id,
+  //     user,
+  //   );
+  //   const onLineTransaction = payment.transactions.find(
+  //     (t) => t.type === TransactionType.ONLINE_PAYMENT,
+  //   );
+  //   if (onLineTransaction) {
+  //     return await this.webHookService.handleWebhook({
+  //       status: TransactionStatus.SUCCEEDED,
+  //       amount: onLineTransaction.amount,
+  //       referenceId: onLineTransaction.id,
+  //     });
+  //   }
+  //   return payment;
+  // }
 
   @Post(':id/action')
   orderAction(
@@ -92,8 +86,6 @@ export class OrdersController {
         return this.ordersService.rejectOrder(id, user, orderActionDto.reason);
       case OrderAction.CANCEL:
         return this.ordersService.cancelOrder(id, user, orderActionDto.reason);
-      case OrderAction.REOPEN_CANCELED:
-        return this.itemOrdersService.reOpenCanaledOrder(id, user);
       case OrderAction.APPROVE:
         return this.ordersService.approveOrder(id, user);
       default:

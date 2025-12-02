@@ -26,7 +26,6 @@ import {
   SelectQueryBuilder,
 } from 'typeorm';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
-import { ItemsOrdersService } from '../orders/items-orders.service';
 import { CartItemDto, CreateCartDto } from './dto/create-cart.dto';
 import { ErrorCodes } from '@/common/error-codes';
 import { CartOffer } from '@/database/entities/cart-offer.entity';
@@ -155,7 +154,6 @@ export class CartsService extends DBService<Cart, CreateCartDto> {
     @InjectRepository(User)
     public userRepo: Repository<User>,
     private dataSource: DataSource,
-    private itemsOrdersService: ItemsOrdersService,
   ) {
     super(repository, CART_PAGINATION_CONFIG);
   }
@@ -651,8 +649,6 @@ export class CartsService extends DBService<Cart, CreateCartDto> {
       };
       if (deletedBy.branchId) {
         whereCondition.branch = { id: deletedBy.branchId };
-      } else if (deletedBy.customerId) {
-        whereCondition.user = { customer: { id: deletedBy.customerId } };
       } else {
         whereCondition.user = { id: deletedBy.id };
       }
@@ -702,9 +698,5 @@ export class CartsService extends DBService<Cart, CreateCartDto> {
       isCheckedOut: false,
     });
     return qb;
-  }
-
-  checkoutByProvider(cartId: string, checkoutBy?: AuthUserDto) {
-    return this.itemsOrdersService.createItemsOrder(cartId, checkoutBy);
   }
 }
