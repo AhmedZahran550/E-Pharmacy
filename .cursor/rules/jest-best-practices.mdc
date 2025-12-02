@@ -1,0 +1,11 @@
+---
+description: Best practices for testing with Jest in NestJS applications
+globs: **/*.{spec.ts}
+---
+- Follow the Arrange-Act-Assert convention for unit tests
+- Write unit tests for each public function in controllers and services
+- Use test doubles to simulate dependencies, except for inexpensive third-party dependencies
+- Write end-to-end tests for each API module
+- Add an admin/test method to each controller as a smoke test
+- Use clear and descriptive naming for test variables (inputX, mockX, actualX, expectedX)
+- Write acceptance tests for each module following the Given-When-Then convention

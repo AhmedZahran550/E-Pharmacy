@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <style>
+      .email-container {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      .header {
+        font-size: 24px;
+        color: #333;
+        text-align: center;
+      }
+      .content {
+        font-size: 16px;
+        line-height: 1.5;
+        color: #555;
+      }
+      .button {
+        display: block;
+        width: 200px;
+        margin: 20px auto;
+        padding: 15px;
+        background-color: #007bff;
+        color: #ffffff;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 18px;
+      }
+      .footer {
+        font-size: 12px;
+        color: #999;
+        text-align: center;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='email-container'>
+      <h1 class='header'>Welcome to Pharmacy!</h1>
+      <div class='content'>
+        <p>Thanks for signing up! There's just one final step to secure your
+          account.</p>
+        <p>Please click the button below to verify your email address:</p>
+        <a
+          href={{verificationUrl}}
+          class='button'
+          style='color: #ffffff;'
+        >Verify Email Address</a>
+        <p>This link will expire in 1 hour for your security.</p>
+        <p>If you did not sign up for an account with Pharmacy, you can safely
+          ignore this email.</p>
+      </div>
+      <div class='footer'>
+        <p>&copy; {{year}} Pharmacy. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+</html>

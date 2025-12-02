@@ -1,0 +1,9 @@
+---
+description: Best practices for API documentation with Swagger
+globs: **/*.{ts,js}
+---
+- Use clear and descriptive tags for organizing endpoints
+- Implement proper security definitions for authenticated routes
+- Use examples in your API documentation to aid developers
+- Regularly update your Swagger documentation to reflect API changes
+- Utilize Swagger UI for interactive API exploration

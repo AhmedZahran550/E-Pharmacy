@@ -1,0 +1,28 @@
+{
+  "isLength": "Invalid length",
+  "MATCHES": "Field is required",
+  "NOT_EMPTY": "Cannot be empty!",
+  "INVALID_EMAIL": "email is invalid!",
+  "INVALID_MOBILE": "Mobile is invalid!",
+  "INVALID_NID": "National ID is invalid!",
+  "INVALID_AGE": "Age is invalid!",
+  "INVALID_OTP": "OTP is invalid!",
+  "INVALID_BOOLEAN": "Invalid value",
+  "MIN": "Invalid Length",
+  "MAX": "Invalid Length",
+
+  "isString": "Invalid value",
+
+  "MOBILE_NOT_FOUND": "Mobile number not found",
+  "ISEGYPTIANNATIONALIDCONSTRAINT": "Must be an Egyptian National ID compatible with birth date",
+  "IsEgyptianNationalIdConstraint": "Must be an Egyptian National ID compatible with birth date",
+  "otp": {
+    "required": "OTP is required",
+    "invalid": "OTP is invalid",
+    "expired": "OTP is expired",
+    "notFound": "OTP not found",
+    "alreadyUsed": "OTP already used",
+    "rateLimitExceeded": "OTP limit exceeded, please try after 1 minute",
+    "rateHourlyLimitExceeded": "OTP hourly limit exceeded"
+  }
+}

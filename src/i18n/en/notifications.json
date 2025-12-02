@@ -1,0 +1,98 @@
+{
+  "PENDING_VERIFICATION": {
+    "title": "Order Update",
+    "body": "Order verification required"
+  },
+  "PENDING_CONFIRMATION": {
+    "title": "Order Update",
+    "body": "Order confirmation required"
+  },
+  "PENDING_PAYMENT": {
+    "title": "Order Update",
+    "body": "Order is awaiting payment"
+  },
+  "CANCELED": {
+    "title": "Order Update",
+    "body": "Order has been canceled"
+  },
+  "ORDER_APPROVAL_REQUIRED": {
+    "title": "Order Update",
+    "body": "Order approval is required"
+  },
+  "ORDER_REJECTED": {
+    "title": "Order Update",
+    "body": "Order has been rejected"
+  },
+  "CLOSING_BILL_ADMIN_ACTION_REQUIRED": {
+    "title": "Bill Requires Action",
+    "body": "Closing bill requires admin action"
+  },
+  "CLOSING_BILL_PAID_AND_CLOSED": {
+    "title": "Bill Paid & Closed",
+    "body": "Closing bill paid and closed"
+  },
+  "ORDER_CONFIRMED": {
+    "title": "Order Update",
+    "body": "Order has been confirmed"
+  },
+  "PAYMENT_FOR_OTHERS_REQUEST": {
+    "title": "Payment Request",
+    "body": "Payment request sent on behalf of someone else"
+  },
+  "PAYMENT_FOR_OTHERS_REJECTED": {
+    "title": "Payment Request Rejected",
+    "body": "Payment request for others has been rejected"
+  },
+  "POINTS_EARNED": {
+    "title": "Points Earned",
+    "body": "You have earned new points in your account"
+  },
+  "REFERRAL_REWARD": {
+    "title": "Referral Reward",
+    "body": "You have received a reward for referring a friend"
+  },
+  "ORDER_APPROVED": {
+    "title": "The Order Has Been Approved",
+    "body": "The order has been approved and is now awaiting payment."
+  },
+  "PENDING_APPROVAL": {
+    "title": "Order Update",
+    "body": "The order is awaiting review and approval."
+  },
+  "POINTS_MANUALLY_ADDED": {
+    "title": "Points Added!",
+    "body": "An administrator has added new points to your account."
+  },
+  "ORDER_CANCELED": {
+    "title": "Order Canceled",
+    "body": "Your order has been successfully canceled."
+  },
+  "ORDER_REOPENED": {
+    "title": "Order Reopened",
+    "body": "A previously closed or canceled order has been reopened."
+  },
+  "NEW_SUPPORT_TICKET": {
+    "title": "New Support Ticket",
+    "body": "A new support ticket has been created by a user."
+  },
+  "SUPPORT_TICKET_ESCALATED": {
+    "title": "Ticket Escalated",
+    "body": "Your ticket has been escalated to a higher support team."
+  },
+  "NEW_ESCALATED_SUPPORT_TICKET": {
+    "title": "New Escalated Ticket",
+    "body": "A new escalated support ticket has been assigned to you."
+  },
+  "SUPPORT_TICKET_RESOLVED": {
+    "title": "Support Ticket Resolved",
+    "body": "Your support ticket has been resolved and is now closed."
+  },
+  "SUPPORT_TICKET_MESSAGE": {
+    "title": "New Message on Your Support Ticket",
+    "body": "There's a new message on your support ticket. Check it out to see the update."
+  },
+  "NEW_MESSAGE_ON_SUPPORT_TICKET": {
+    "title": "New Message on Support Ticket",
+    "body": "A new message has been sent on your support ticket."
+  }
+}

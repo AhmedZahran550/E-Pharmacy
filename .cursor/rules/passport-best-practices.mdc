@@ -1,0 +1,9 @@
+---
+description: Best practices for authentication with Passport
+globs: **/*.{ts,js}
+---
+- Use Passport strategies appropriate for your authentication needs (e.g., JWT, local)
+- Implement session management carefully, considering stateless vs. stateful approaches
+- Use serialization and deserialization for user data efficiently
+- Implement proper error handling for authentication failures
+- Regularly update and patch Passport to address security vulnerabilities

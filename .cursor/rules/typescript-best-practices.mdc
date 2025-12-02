@@ -1,0 +1,11 @@
+---
+description: TypeScript coding standards and type safety guidelines
+globs: **/*.{ts}
+---
+- Use strict null checks to prevent null pointer exceptions or undefined errors
+- Prefer interfaces over types for object shapes
+- Utilize type guards and assertions for runtime type checking
+- Implement proper type inference to reduce type annotations
+- Utilize enums for a set of named constants
+- Avoid using `any` and create necessary types for better type safety
+- Use readonly properties and the `as const` assertion for immutability

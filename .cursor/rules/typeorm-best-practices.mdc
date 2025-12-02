@@ -1,0 +1,9 @@
+---
+description: Best practices for using TypeORM with databases
+globs: **/*.{ts,js}
+---
+- Use migrations for database schema changes
+- Implement repositories for data access abstraction
+- Use eager and lazy loading judiciously to optimize performance
+- Utilize transactions for maintaining data integrity
+- Implement soft deletes for logical data removal
