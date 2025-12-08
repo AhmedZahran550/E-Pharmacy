@@ -14,10 +14,6 @@ import { DateColumn } from '../../common/decorators/date-column.decorator';
 import { DecimalColumn } from '../decimal-column.decorator';
 import { BaseEntity } from './base.entity';
 import { Branch } from './branch.entity';
-
-import { OrderItem } from './order-item.entity';
-import { OrderOtp } from './order-otp.entity';
-
 import { User } from './user.entity';
 
 export enum OrderType {
@@ -91,11 +87,6 @@ export class Order extends BaseEntity {
 
   @Column({ nullable: true })
   appliedCode: string;
-
-  @OneToMany(() => OrderOtp, (item) => item.order, {
-    cascade: true,
-  })
-  orderOtps: OrderOtp[];
 
   @ManyToOne(() => User, {
     onDelete: 'CASCADE',

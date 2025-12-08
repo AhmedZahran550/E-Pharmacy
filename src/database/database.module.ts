@@ -14,7 +14,6 @@ import { Notification } from './entities/notification.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
 import { Provider } from './entities/provider.entity';
-import { OrderOtp } from './entities/order-otp.entity';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { DeviceToken } from './entities/device-token.entity';
 
@@ -38,7 +37,6 @@ import { DeviceToken } from './entities/device-token.entity';
       Item,
       Order,
       OrderItem,
-      OrderOtp,
       Notification,
       ActivityLog,
       City,
