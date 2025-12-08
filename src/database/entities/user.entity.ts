@@ -1,5 +1,5 @@
 import { Gender } from '@/common/models/gender.model';
-import { BalanceTransaction } from '@/database/entities/balance-transaction.entity';
+
 import {
   AfterLoad,
   BeforeInsert,
@@ -12,9 +12,9 @@ import {
 import { DateColumn } from '../../common/decorators/date-column.decorator';
 import { Role } from '../../modules/auth/role.model';
 import { BaseEntity } from './base.entity';
-import { Cart } from './cart.entity';
+
 import { Notification } from './notification.entity';
-import { Subscription } from './subscription.entity';
+
 import { DecimalColumn } from '../decimal-column.decorator';
 import { Order } from './order.entity';
 import { DeviceToken } from './device-token.entity';
@@ -189,30 +189,10 @@ export class User extends BaseEntity {
   })
   roles?: Role[];
 
-  @OneToMany(() => Cart, (cart) => cart.user, {
-    nullable: true,
-  })
-  carts?: Cart[];
-
-  // one to many relation with subscription
-  @OneToMany(() => Subscription, (subscription) => subscription.user, {
-    nullable: true,
-  })
-  subscriptions?: Subscription[];
-
   @OneToMany(() => Notification, (notification) => notification.recipient, {
     nullable: true,
   })
   notifications?: Notification[];
-
-  @OneToMany(
-    () => BalanceTransaction,
-    (balanceTransaction) => balanceTransaction.user,
-    {
-      nullable: true,
-    },
-  )
-  balanceTransactions?: BalanceTransaction[];
 
   @OneToMany(() => Order, (order) => order.user, {
     nullable: true,

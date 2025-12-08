@@ -15,7 +15,7 @@ import { Role } from '../../modules/auth/role.model';
 import { BaseEntity } from './base.entity';
 import { Branch } from './branch.entity';
 import { Exclude } from 'class-transformer';
-import { SystemNotification } from './system-notification.entity';
+
 import { Policy } from '@/modules/auth/policies.types';
 
 const LOCKED_DURATION_IN_MINUTES: number = process.env.LOCKED_DURATION

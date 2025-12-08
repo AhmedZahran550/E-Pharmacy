@@ -28,7 +28,6 @@ import { BranchesModule } from './modules/branches/branches.module';
 import { EmployeesModule } from './modules/employees/employees.module';
 import { UsersModule } from './modules/users/users.module';
 import { schemaValidator } from './config/schema-validator';
-import { CartModule } from './modules/cart/cart.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PostAuthorizeInterceptor } from '@/common/interceptors/post-authorize.interceptor';
 import { MetadataInterceptor } from '@/common/interceptors/metadata.interceptor';
@@ -37,7 +36,6 @@ import { cacheConfigFactory } from './common/cacheManager.config';
 import { EmailModule } from './common/mailer/email.module';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
 import { DBExceptionFilter } from './common/filters/db-exception.filter';
-import { GlobalSearchModule } from './modules/global-search/global-search.module';
 import { AppController } from './app.controller';
 import { LogsModule } from './modules/logs/logs.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -105,9 +103,7 @@ const envFilePath = [
     EmployeesModule,
     LocalizationModule,
     OrdersModule,
-    CartModule,
     EmailModule,
-    GlobalSearchModule,
     NotificationsModule,
     LogsModule,
   ],

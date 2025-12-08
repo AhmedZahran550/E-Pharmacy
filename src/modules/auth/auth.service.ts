@@ -24,8 +24,6 @@ import { Client, CredentialsDto } from './dto/credentials.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { OtpService } from './otp.service';
 import { Role } from './role.model';
-import { SubscriptionStatus } from '@/database/entities/subscription.entity';
-import { Subscription } from 'rxjs';
 import {
   AdminTokenPayload,
   CustomerTokenPayload,
@@ -405,17 +403,6 @@ export class AuthService {
   }
 
   private async getAuthResponse(user: User) {
-    let subscriptions = user.subscriptions;
-    if (
-      !subscriptions?.some((sub) => sub.status === SubscriptionStatus.ACTIVE)
-    ) {
-      throw new ForbiddenException({
-        message: 'no Active subscription found',
-        code: ErrorCodes.NO_ACTIVE_SUBSCRIPTION,
-      });
-    }
-    const lastSubscription = subscriptions[0];
-    delete user.subscriptions;
     this.verifyUserAccess(user);
     if (!user.mobileVerified) {
       user.mobileVerified = true;
@@ -429,7 +416,6 @@ export class AuthService {
       clients: [Client.MOBILE_APP],
     };
     const tokens = await this.generateToken(payload);
-    (user as any).subscription = lastSubscription;
     return { ...tokens, user };
   }
 

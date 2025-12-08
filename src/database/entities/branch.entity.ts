@@ -19,10 +19,10 @@ import { BaseEntity } from './base.entity';
 import { BranchItem } from './branch-item.entity';
 import { EmbededLocalizedName } from './embeded/localized-name.entity';
 import { Provider } from './provider.entity';
-import { SystemNotification } from './system-notification.entity';
+
 import { Exclude } from 'class-transformer';
 import * as argon from 'argon2';
-import { BranchAvailability } from './branch-availability.entity';
+
 import { DecimalColumn } from '../decimal-column.decorator';
 
 @Entity({ name: 'branch' })
@@ -104,12 +104,6 @@ export class Branch extends BaseEntity {
 
   @OneToMany(() => BranchItem, (providerItem) => providerItem.branch)
   items: BranchItem[];
-
-  @OneToMany(() => SystemNotification, (notification) => notification.branch)
-  notifications?: SystemNotification[];
-
-  @OneToMany(() => BranchAvailability, (availability) => availability.branch)
-  availability?: BranchAvailability[];
 
   @Exclude()
   @Column({ select: false, nullable: true })

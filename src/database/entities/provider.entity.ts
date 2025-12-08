@@ -15,13 +15,7 @@ import {
   LocalizedAddressColumn,
 } from './embeded/localized-address.entity';
 import { EmbededLocalizedName } from './embeded/localized-name.entity';
-import { ProviderItem } from './provider-item.entity';
-import { ProviderSection } from './provider-section.entity';
-import { ProviderType } from './provider-type.entity';
-import { ProviderSpeciality } from './provider-speciality.entity';
-import { ClosingBill } from './closing-bill.entity';
-import { nullable } from 'zod';
-import { SystemNotification } from './system-notification.entity';
+
 import { Exclude } from 'class-transformer';
 import * as argon from 'argon2';
 
@@ -75,27 +69,6 @@ export class Provider extends BaseEntity {
   })
   closingPeriodType: ClosingPeriodType;
 
-  @OneToMany(() => ProviderItem, (ProviderItem) => ProviderItem.provider, {
-    cascade: true,
-  })
-  providerItems?: ProviderItem[];
-
-  @Index('PROVIDER_TYPE_UNIQUE_IDX')
-  @ManyToOne(() => ProviderType, (providerType) => providerType.providers, {
-    nullable: false,
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  type: ProviderType;
-
-  @OneToMany(
-    () => ProviderSection,
-    (providerSection) => providerSection.provider,
-  )
-  providerSections: ProviderSection[];
-  @OneToMany(() => ClosingBill, (ClosingBill) => ClosingBill.provider)
-  closingBills: ClosingBill[];
-
   @Column({
     type: 'tsvector',
     generatedType: 'STORED',
@@ -108,15 +81,6 @@ export class Provider extends BaseEntity {
   @Exclude()
   @Column({ select: false, nullable: true })
   adminPassword: string;
-
-  @OneToMany(
-    () => ProviderSpeciality,
-    (providerSpeciality) => providerSpeciality.provider,
-  )
-  providerSpecialities: ProviderSpeciality[];
-
-  @OneToMany(() => SystemNotification, (notification) => notification.provider)
-  notifications?: SystemNotification[];
 
   @BeforeInsert()
   @BeforeUpdate()

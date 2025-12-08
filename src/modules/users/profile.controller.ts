@@ -17,7 +17,6 @@ import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { ProfileService } from './profile.service';
 import { UsersService } from './users.service';
 import { ProfileNotificationsDto } from './dto/profile-notifications.dto';
-import { RatingDto } from './dto/app-rating.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 
@@ -61,17 +60,6 @@ export class ProfileController {
       user.id,
       profileNotificationsDto,
     );
-  }
-
-  @Post('app-rating')
-  async appRating(@Body() ratingDto: RatingDto, @AuthUser() user: AuthUserDto) {
-    ratingDto.user = { id: user.id };
-    return await this.profileService.appRating(ratingDto);
-  }
-
-  @Get('milestones')
-  async milestones(@AuthUser() user: AuthUserDto) {
-    return await this.profileService.getMilestones(user);
   }
 
   @Patch('preferences')

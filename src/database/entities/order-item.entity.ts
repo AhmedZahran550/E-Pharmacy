@@ -3,23 +3,23 @@ import { BaseEntity } from './base.entity';
 import { Order } from './order.entity';
 import { DecimalColumn } from '../decimal-column.decorator';
 import { Item } from './item.entity';
-import { Extras } from './cart-item.entity';
+
 import { User } from './user.entity';
 
 const ORDER_PROVIDER_ITEM_UNIQUE_IDX = 'ORDER_PROVIDER_ITEM_UNIQUE_IDX';
 
 @Entity({ name: 'order_item' })
-@Index('ORDER_ITEM_ORDER_IDX', ['order'])
+// @Index('ORDER_ITEM_ORDER_IDX', ['order'])
 @Check(
   `("item_id" IS NOT NULL AND "user_id" IS NULL) OR ("item_id" IS NULL AND "user_id" IS NOT NULL)`,
 )
 export class OrderItem extends BaseEntity<OrderItem> {
-  @ManyToOne(() => Order, (order) => order.orderItems, {
-    onDelete: 'CASCADE',
-    nullable: false,
-  })
-  @JoinColumn()
-  order: Order;
+  // @ManyToOne(() => Order, (order) => order.orderItems, {
+  //   onDelete: 'CASCADE',
+  //   nullable: false,
+  // })
+  // @JoinColumn()
+  // order: Order;
 
   @ManyToOne(() => Item, {
     nullable: true,
@@ -41,9 +41,6 @@ export class OrderItem extends BaseEntity<OrderItem> {
 
   @Column({ nullable: true })
   notes: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  extras?: Extras;
 
   @DecimalColumn()
   unitPrice: number;

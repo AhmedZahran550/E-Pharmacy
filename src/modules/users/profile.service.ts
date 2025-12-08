@@ -11,10 +11,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { ProfileNotificationsDto } from './dto/profile-notifications.dto';
 import { User, UserPreferences } from '@/database/entities/user.entity';
 import { EntityManager, In, Repository } from 'typeorm';
-import { RatingDto } from './dto/app-rating.dto';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AppRating } from '@/database/entities/app-rating.entity';
+
 import { OrdersService } from '../orders/orders.service';
 import { OrderStatus } from '@/database/entities/order.entity';
 import { decrypt } from '@/common/crypto';
@@ -27,8 +26,6 @@ import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 @Injectable()
 export class ProfileService {
   constructor(
-    @InjectRepository(AppRating)
-    public appRatingRepository: Repository<AppRating>,
     private storageService: GCStorageService,
     private usersService: UsersService,
     private orderService: OrdersService,
@@ -117,40 +114,6 @@ export class ProfileService {
     }
   }
 
-  async appRating(ratingDto: RatingDto) {
-    const entity = this.appRatingRepository.create(ratingDto);
-    const newEntity = await this.appRatingRepository.save(entity);
-    return newEntity as any as AppRating;
-  }
-
-  async getMilestones(user: AuthUserDto) {
-    const finishedOrders = await this.orderService.find({
-      where: {
-        user: { id: user.id },
-        status: In([OrderStatus.COMPLETED, OrderStatus.CONFIRMED]),
-      },
-      order: {
-        finalizedDate: 'DESC',
-      },
-    });
-    const listAppRating = await this.appRatingRepository.findOne({
-      where: {
-        user: { id: user.id },
-      },
-      order: {
-        metadata: {
-          createdAt: 'DESC',
-        },
-      },
-    });
-    const mileStones = {
-      finishedOrders: finishedOrders.length, //count user finished or compleleted orders
-      lastOrderCompletionDate: finishedOrders[0]?.finalizedDate ?? null,
-      reviewPromptShownAt: listAppRating?.metadata?.createdAt, // last record in app-rating for the user
-      reviewPromptShown: !!listAppRating?.metadata?.createdAt, // last record in app-rating for the user
-    };
-    return mileStones;
-  }
   async getUserProfile(userId: string) {
     const qb = this.usersService.repository
       .createQueryBuilder('user')

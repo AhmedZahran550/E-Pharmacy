@@ -29,11 +29,6 @@ export class UserNotificationsController {
     return await this.notificationsService.findAll(query);
   }
 
-  @Get('unread-count')
-  getUnreadCount(@AuthUser() user: AuthUserDto) {
-    return this.notificationsService.findUnreadCount(user);
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
     return this.notificationsService.find({

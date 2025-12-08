@@ -1,0 +1,98 @@
+﻿src/database/entities/branch-item.entity.ts(8,30): error TS2307: Cannot find module './provider-item.entity' or its corresponding type declarations.
+src/database/entities/branch-item.entity.ts(29,65): error TS2339: Property 'branchItems' does not exist on type 'unknown'.
+src/database/entities/branch.entity.ts(22,36): error TS2307: Cannot find module './system-notification.entity' or its corresponding type declarations.
+src/database/entities/branch.entity.ts(25,36): error TS2307: Cannot find module './branch-availability.entity' or its corresponding type declarations.
+src/database/entities/branch.entity.ts(108,71): error TS2339: Property 'branch' does not exist on type 'unknown'.
+src/database/entities/branch.entity.ts(111,71): error TS2339: Property 'branch' does not exist on type 'unknown'.
+src/database/entities/employee.entity.ts(18,36): error TS2307: Cannot find module './system-notification.entity' or its corresponding type declarations.
+src/database/entities/item.entity.ts(7,30): error TS2307: Cannot find module './provider-item.entity' or its corresponding type declarations.
+src/database/entities/item.entity.ts(8,32): error TS2307: Cannot find module './speciality-item.entity' or its corresponding type declarations.
+src/database/entities/item.entity.ts(9,27): error TS2307: Cannot find module './offer-item.entity' or its corresponding type declarations.
+src/database/entities/item.entity.ts(69,65): error TS2339: Property 'item' does not exist on type 'unknown'.
+src/database/entities/item.entity.ts(72,56): error TS2339: Property 'item' does not exist on type 'unknown'.
+src/database/entities/item.entity.ts(75,71): error TS2339: Property 'item' does not exist on type 'unknown'.
+src/database/entities/order-item.entity.ts(6,24): error TS2307: Cannot find module './cart-item.entity' or its corresponding type declarations.
+src/database/entities/order.entity.ts(17,22): error TS2307: Cannot find module './cart.entity' or its corresponding type declarations.
+src/database/entities/order.entity.ts(20,30): error TS2307: Cannot find module './subscription.entity' or its corresponding type declarations.
+src/database/entities/order.entity.ts(21,29): error TS2307: Cannot find module './transaction.entity' or its corresponding type declarations.
+src/database/entities/order.entity.ts(23,36): error TS2307: Cannot find module './system-notification.entity' or its corresponding type declarations.
+src/database/entities/order.entity.ts(24,29): error TS2307: Cannot find module './closing-bill.entity' or its corresponding type declarations.
+src/database/entities/order.entity.ts(25,23): error TS2307: Cannot find module './promo.entity' or its corresponding type declarations.
+src/database/entities/order.entity.ts(26,25): error TS2307: Cannot find module './payment.entity' or its corresponding type declarations.
+src/database/entities/order.entity.ts(27,30): error TS2307: Cannot find module './branch-rating.entity' or its corresponding type declarations.
+src/database/entities/order.entity.ts(127,62): error TS2339: Property 'order' does not exist on type 'unknown'.
+src/database/entities/order.entity.ts(133,50): error TS2339: Property 'order' does not exist on type 'unknown'.
+src/database/entities/order.entity.ts(157,40): error TS2339: Property 'order' does not exist on type 'unknown'.
+src/database/entities/order.entity.ts(171,71): error TS2339: Property 'order' does not exist on type 'unknown'.
+src/database/entities/order.entity.ts(176,53): error TS2339: Property 'order' does not exist on type 'unknown'.
+src/database/entities/provider.entity.ts(18,30): error TS2307: Cannot find module './provider-item.entity' or its corresponding type declarations.
+src/database/entities/provider.entity.ts(19,33): error TS2307: Cannot find module './provider-section.entity' or its corresponding type declarations.
+src/database/entities/provider.entity.ts(20,30): error TS2307: Cannot find module './provider-type.entity' or its corresponding type declarations.
+src/database/entities/provider.entity.ts(21,36): error TS2307: Cannot find module './provider-speciality.entity' or its corresponding type declarations.
+src/database/entities/provider.entity.ts(22,29): error TS2307: Cannot find module './closing-bill.entity' or its corresponding type declarations.
+src/database/entities/provider.entity.ts(24,36): error TS2307: Cannot find module './system-notification.entity' or its corresponding type declarations.
+src/database/entities/provider.entity.ts(78,65): error TS2339: Property 'provider' does not exist on type 'unknown'.
+src/database/entities/provider.entity.ts(84,65): error TS2339: Property 'providers' does not exist on type 'unknown'.
+src/database/entities/provider.entity.ts(93,42): error TS2339: Property 'provider' does not exist on type 'unknown'.
+src/database/entities/provider.entity.ts(96,62): error TS2339: Property 'provider' does not exist on type 'unknown'.
+src/database/entities/provider.entity.ts(114,48): error TS2339: Property 'provider' does not exist on type 'unknown'.
+src/database/entities/provider.entity.ts(118,71): error TS2339: Property 'provider' does not exist on type 'unknown'.
+src/database/entities/user.entity.ts(2,36): error TS2307: Cannot find module '@/database/entities/balance-transaction.entity' or its corresponding type declarations.
+src/database/entities/user.entity.ts(15,22): error TS2307: Cannot find module './cart.entity' or its corresponding type declarations.
+src/database/entities/user.entity.ts(17,30): error TS2307: Cannot find module './subscription.entity' or its corresponding type declarations.
+src/database/entities/user.entity.ts(192,41): error TS2339: Property 'user' does not exist on type 'unknown'.
+src/database/entities/user.entity.ts(198,65): error TS2339: Property 'user' does not exist on type 'unknown'.
+src/database/entities/user.entity.ts(210,48): error TS2339: Property 'user' does not exist on type 'unknown'.
+src/modules/auth/auth.service.ts(27,36): error TS2307: Cannot find module '@/database/entities/subscription.entity' or its corresponding type declarations.
+src/modules/branches/branch-availability.service.ts(3,36): error TS2307: Cannot find module '@/database/entities/branch-availability.entity' or its corresponding type declarations.
+src/modules/branches/branches.service.ts(38,30): error TS2307: Cannot find module '@/database/entities/branch-rating.entity' or its corresponding type declarations.
+src/modules/branches/branches.service.ts(39,28): error TS2307: Cannot find module '@/database/entities/item-rating.entity' or its corresponding type declarations.
+src/modules/branches/branches.service.ts(507,9): error TS2345: Argument of type 'unknown' is not assignable to parameter of type '[((() => string) | _QueryDeepPartialEntity<unknown>)?, ((() => string) | _QueryDeepPartialEntity<unknown>)?, ((() => string) | _QueryDeepPartialEntity<unknown>)?] | [...?][]'.
+src/modules/branches/branches.service.ts(519,54): error TS2345: Argument of type 'unknown[]' is not assignable to parameter of type '[((() => string) | _QueryDeepPartialEntity<unknown>)?, ((() => string) | _QueryDeepPartialEntity<unknown>)?] | [((() => string) | _QueryDeepPartialEntity<unknown>)?, ((() => string) | _QueryDeepPartialEntity<...>)?][]'.
+  Type 'unknown[]' is not assignable to type '[((() => string) | _QueryDeepPartialEntity<unknown>)?, ((() => string) | _QueryDeepPartialEntity<unknown>)?][]'.
+    Type 'unknown' is not assignable to type '[((() => string) | _QueryDeepPartialEntity<unknown>)?, ((() => string) | _QueryDeepPartialEntity<unknown>)?]'.
+src/modules/branches/dto/create-availability.dto.ts(2,27): error TS2307: Cannot find module '@/database/entities/branch-availability.entity' or its corresponding type declarations.
+src/modules/branches/upload-branches.service.ts(5,36): error TS2307: Cannot find module '@/database/entities/provider-speciality.entity' or its corresponding type declarations.
+src/modules/branches/upload-branches.service.ts(6,30): error TS2307: Cannot find module '@/database/entities/provider-type.entity' or its corresponding type declarations.
+src/modules/branches/upload-branches.service.ts(8,28): error TS2307: Cannot find module '@/database/entities/speciality.entity' or its corresponding type declarations.
+src/modules/cart/carts.service.ts(5,26): error TS2307: Cannot find module '@/database/entities/cart-item.entity' or its corresponding type declarations.
+src/modules/cart/carts.service.ts(6,22): error TS2307: Cannot find module '@/database/entities/cart.entity' or its corresponding type declarations.
+src/modules/cart/carts.service.ts(8,36): error TS2307: Cannot find module '@/database/entities/offer.entity' or its corresponding type declarations.
+src/modules/cart/carts.service.ts(31,27): error TS2307: Cannot find module '@/database/entities/cart-offer.entity' or its corresponding type declarations.
+src/modules/cart/carts.service.ts(81,37): error TS2339: Property 'cartItems' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(96,12): error TS2339: Property 'cartItems' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(96,29): error TS2339: Property 'cartItems' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(102,14): error TS2339: Property 'cartItems' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(103,14): error TS2339: Property 'cartOffers' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(106,12): error TS2339: Property 'subTotal' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(107,12): error TS2339: Property 'totalDiscount' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(108,12): error TS2339: Property 'totalAmount' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(381,12): error TS2339: Property 'cartItems' does not exist on type '{ id: string; isCheckedOut: boolean; user: { id: string; }; }'.
+src/modules/cart/carts.service.ts(397,32): error TS2339: Property 'cartItems' does not exist on type '{ id: string; isCheckedOut: boolean; user: { id: string; }; }'.
+src/modules/cart/carts.service.ts(398,14): error TS2339: Property 'cartOffers' does not exist on type '{ id: string; isCheckedOut: boolean; user: { id: string; }; }'.
+src/modules/cart/carts.service.ts(402,12): error TS2339: Property 'cartItems' does not exist on type '{ id: string; isCheckedOut: boolean; user: { id: string; }; }'.
+src/modules/cart/carts.service.ts(402,47): error TS2339: Property 'cartItems' does not exist on type '{ id: string; isCheckedOut: boolean; user: { id: string; }; }'.
+src/modules/cart/carts.service.ts(403,12): error TS2339: Property 'subTotal' does not exist on type '{ id: string; isCheckedOut: boolean; user: { id: string; }; }'.
+src/modules/cart/carts.service.ts(404,12): error TS2339: Property 'totalDiscount' does not exist on type '{ id: string; isCheckedOut: boolean; user: { id: string; }; }'.
+src/modules/cart/carts.service.ts(405,12): error TS2339: Property 'totalAmount' does not exist on type '{ id: string; isCheckedOut: boolean; user: { id: string; }; }'.
+src/modules/cart/carts.service.ts(434,16): error TS2339: Property 'cartOffers' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(455,12): error TS2339: Property 'cartOffers' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(458,14): error TS2339: Property 'cartItems' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(459,14): error TS2339: Property 'cartOffers' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(461,12): error TS2339: Property 'subTotal' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(462,12): error TS2339: Property 'totalDiscount' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/carts.service.ts(463,12): error TS2339: Property 'totalAmount' does not exist on type '{ id: string; isCheckedOut: boolean; }'.
+src/modules/cart/dto/create-cart.dto.ts(3,26): error TS2307: Cannot find module '@/database/entities/cart-item.entity' or its corresponding type declarations.
+src/modules/global-search/globalSearch.service.ts(5,31): error TS2307: Cannot find module '@/database/entities/search-history.entity' or its corresponding type declarations.
+src/modules/items/upload-items.service.ts(8,32): error TS2307: Cannot find module '@/database/entities/speciality-item.entity' or its corresponding type declarations.
+src/modules/items/upload-items.service.ts(9,28): error TS2307: Cannot find module '@/database/entities/speciality.entity' or its corresponding type declarations.
+src/modules/notifications/notifications.service.ts(26,36): error TS2307: Cannot find module '@/database/entities/system-notification.entity' or its corresponding type declarations.
+src/modules/notifications/system-notification.service.ts(14,36): error TS2307: Cannot find module '@/database/entities/system-notification.entity' or its corresponding type declarations.
+src/modules/orders/dto/create-subscription-order.dto.ts(1,31): error TS2307: Cannot find module '@/database/entities/transaction.entity' or its corresponding type declarations.
+src/modules/orders/dto/orderPayments.dto.ts(4,27): error TS2307: Cannot find module '@/database/entities/payment.entity' or its corresponding type declarations.
+src/modules/orders/dto/orderPayments.dto.ts(8,8): error TS2307: Cannot find module '@/database/entities/transaction.entity' or its corresponding type declarations.
+src/modules/orders/orders.controller.ts(24,8): error TS2307: Cannot find module '@/database/entities/payment.entity' or its corresponding type declarations.
+src/modules/orders/orders.controller.ts(28,8): error TS2307: Cannot find module '@/database/entities/transaction.entity' or its corresponding type declarations.
+src/modules/orders/orders.service.ts(5,35): error TS2307: Cannot find module '@/database/entities/transaction.entity' or its corresponding type declarations.
+src/modules/users/dto/app-rating.dto.ts(1,30): error TS2307: Cannot find module '@/database/entities/app-rating.entity' or its corresponding type declarations.
+src/modules/users/profile.service.ts(17,27): error TS2307: Cannot find module '@/database/entities/app-rating.entity' or its corresponding type declarations.

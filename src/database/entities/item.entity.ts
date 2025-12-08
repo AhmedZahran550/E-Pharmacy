@@ -4,9 +4,6 @@ import { DecimalColumn } from '../decimal-column.decorator';
 import { LocalizedNameColumn } from '../localized-column.decorator';
 import { BaseEntity } from './base.entity';
 import { EmbededLocalizedName } from './embeded/localized-name.entity';
-import { ProviderItem } from './provider-item.entity';
-import { SpecialityItem } from './speciality-item.entity';
-import { OfferItem } from './offer-item.entity';
 
 export enum ItemType {
   SERVICE = 'SERVICE',
@@ -65,17 +62,6 @@ export class Item extends BaseEntity {
     nullable: true,
   })
   origin: ItemOrigin;
-
-  @OneToMany(() => ProviderItem, (providerItem) => providerItem.item)
-  providerItems: ProviderItem[];
-
-  @OneToMany(() => OfferItem, (offerItem) => offerItem.item)
-  offerItems: OfferItem[];
-
-  @OneToMany(() => SpecialityItem, (specialityItem) => specialityItem.item, {
-    cascade: true,
-  })
-  specialityItems: SpecialityItem[];
 
   @Column({
     type: 'enum',

@@ -14,17 +14,11 @@ import { DateColumn } from '../../common/decorators/date-column.decorator';
 import { DecimalColumn } from '../decimal-column.decorator';
 import { BaseEntity } from './base.entity';
 import { Branch } from './branch.entity';
-import { Cart } from './cart.entity';
+
 import { OrderItem } from './order-item.entity';
 import { OrderOtp } from './order-otp.entity';
-import { Subscription } from './subscription.entity';
-import { Transaction } from './transaction.entity';
+
 import { User } from './user.entity';
-import { SystemNotification } from './system-notification.entity';
-import { ClosingBill } from './closing-bill.entity';
-import { Promo } from './promo.entity';
-import { Payment } from './payment.entity';
-import { BranchRating } from './branch-rating.entity';
 
 export enum OrderType {
   ITEM_ORDER = 'ITEM_ORDER',
@@ -112,54 +106,11 @@ export class Order extends BaseEntity {
   @JoinColumn()
   user: User;
 
-  @ManyToOne(() => Subscription, {
-    nullable: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn()
-  subscription: Subscription;
-
-  @OneToMany(() => OrderItem, (item) => item.order, {
-    cascade: true,
-  })
-  orderItems: OrderItem[];
-
-  @OneToMany(() => Transaction, (transaction) => transaction.order, {
-    cascade: true,
-    nullable: true,
-  })
-  transactions: Transaction[];
-
-  @OneToMany(() => Payment, (payment) => payment.order, {
-    cascade: true,
-    nullable: true,
-  })
-  payments: Payment[];
-
   @ManyToOne(() => Branch, {
     onDelete: 'CASCADE',
     nullable: true,
   })
   branch: Branch;
-
-  @ManyToOne(() => ClosingBill, {
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
-  closingBill: ClosingBill;
-
-  @ManyToOne(() => Promo, {
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
-  promo: Promo;
-
-  @OneToOne(() => Cart, (cart) => cart.order, {
-    nullable: true,
-    onDelete: 'RESTRICT',
-  })
-  @JoinColumn()
-  cart: Cart;
 
   @Column({
     type: 'boolean',
@@ -167,16 +118,6 @@ export class Order extends BaseEntity {
     generatedType: 'STORED',
   })
   isOpen: boolean;
-
-  @OneToMany(() => SystemNotification, (notification) => notification.order, {
-    nullable: true,
-  })
-  notifications?: SystemNotification[];
-
-  @OneToMany(() => BranchRating, (rating) => rating.order, {
-    nullable: true,
-  })
-  branchRatings?: BranchRating[];
 
   @BeforeInsert()
   generateOrderNo() {
