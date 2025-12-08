@@ -7,8 +7,6 @@ import { Branch } from './branch.entity';
 import { EmbededLocalizedName } from './embeded/localized-name.entity';
 
 @Entity({ name: 'branch_item' })
-@Index('BRANCH_ITEM_KEY_IDX', ['branch', 'providerItem'], { unique: true })
-@Index('BRANCH_ITEM_PROVIDER_ITEM_IDX', ['providerItem'])
 @Index('BRANCH_ITEM_BRANCH_IDX', ['branch'])
 export class BranchItem extends BaseEntity {
   constructor(obj?: Partial<BranchItem>) {

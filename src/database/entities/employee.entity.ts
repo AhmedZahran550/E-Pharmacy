@@ -27,8 +27,8 @@ export enum EmployeeType {
   PROVIDER = 'provider',
 }
 
-@Index('EMPLOYEE_CUSTOMER_IDX', ['customer'])
 @Index('EMPLOYEE_EMAIL_IDX', ['email'], { unique: true })
+@Index('EMPLOYEE_BRANCH_IDX', ['branch'])
 @Entity({ name: 'employee' })
 export class Employee extends BaseEntity {
   @Column()

@@ -40,10 +40,7 @@ export enum OrderStatus {
 }
 @Entity({ name: 'order' })
 @Index('ORDER_USER_IDX', ['user'])
-@Index('ORDER_CART_IDX', ['cart'])
 @Index('ORDER_BRANCH_IDX', ['branch'])
-@Index('ORDER_CLOSING-BILL_IDX', ['closingBill'])
-@Index('ORDER_PROMO_CODE_IDX', ['promo'])
 @Check(`(status <> 'REJECTED' OR rejection_reason IS NOT NULL)`)
 export class Order extends BaseEntity {
   @DateColumn({ nullable: true })
