@@ -1,5 +1,5 @@
-import { ExcludeNullInterceptor } from '@/common/interceptors/exclude-null.interceptor';
-import { AppErrorResponse } from '@/common/models/error-response';
+import { ExcludeNullInterceptor } from './common/interceptors/exclude-null.interceptor';
+import { AppErrorResponse } from './common/models/error-response';
 import {
   ClassSerializerInterceptor,
   HttpException,
