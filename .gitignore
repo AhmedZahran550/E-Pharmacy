@@ -44,3 +44,4 @@ src/config/env/*
 /uploads
 
 i18n.generated.ts
+.vercel
