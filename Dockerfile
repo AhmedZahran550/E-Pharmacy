@@ -7,18 +7,12 @@ FROM node:22-alpine As development
 # Create app directory
 WORKDIR /usr/src/app
 
-# Copy application dependency manifests to the container image.
-# A wildcard is used to ensure copying both package.json AND package-lock.json (when available).
-# Copying this first prevents re-running npm install on every code change.
 COPY --chown=node:node package*.json ./
 
-# Install app dependencies using the `npm ci` command instead of `npm install`
 RUN yarn install
 
-# Bundle app source
 COPY --chown=node:node . .
 
-# Use the node user from the image (instead of the root user)
 USER node
 
 ###################
@@ -31,18 +25,14 @@ WORKDIR /usr/src/app
 
 COPY --chown=node:node package*.json ./
 
-# In order to run `npm run build` we need access to the Nest CLI which is a dev dependency. In the previous development stage we ran `npm ci` which installed all dependencies, so we can copy over the node_modules directory from the development image
 COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
 
 COPY --chown=node:node . .
 
-# Run the build command which creates the production bundle
 RUN yarn build
 
-# Set NODE_ENV environment variable
 # ENV NODE_ENV production
 
-# Running `npm ci` removes the existing node_modules directory and passing in --only=production ensures that only the production dependencies are installed. This ensures that the node_modules directory is as optimized as possible
 RUN yarn install --only=production && yarn cache clean --force
 
 USER node
@@ -59,8 +49,14 @@ ENV TZ=UTC
 
 RUN apk add --no-cache dumb-init
 
+# --- FIX 1: Copy package.json to the final image ---
+COPY --chown=node:node package*.json ./
+
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+
+# Careful with this path. If your code expects config at dist/src/config, keep it.
+# If your code expects dist/config, you might need to adjust this.
 COPY --chown=node:node --from=build /usr/src/app/src/config/env ./dist/src/config/env
 
 USER node
@@ -69,4 +65,6 @@ EXPOSE 3000
 ENV PORT 3000
 
 ENTRYPOINT ["dumb-init", "--"]
-CMD [ "node", "dist/src/main.js" ]
+
+# --- FIX 2: Correct path to main.js (Removed /src/) ---
+CMD [ "node", "dist/main.js" ]
