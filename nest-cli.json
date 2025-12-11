@@ -5,11 +5,18 @@
   "compilerOptions": {
     "webpack": true,
     "assets": [
-      { "include": "i18n/**/*", "watchAssets": true, "outDir": "dist/src/" },
-      { "include": "templates/**/*.hbs", "outDir": "dist/src" },
+      {
+        "include": "i18n/**/*",
+        "watchAssets": true,
+        "outDir": "dist"
+      },
+      {
+        "include": "templates/**/*.hbs",
+        "outDir": "dist"
+      },
       {
         "include": "config/env/**/*.env",
-        "outDir": "dist/src"
+        "outDir": "dist"
       }
     ]
   }
