@@ -1,4 +1,4 @@
-import { GCStorageService } from '@/common/gc-storage.service';
+import { StorageService } from '@/common/storage.service';
 import {
   BadRequestException,
   ForbiddenException,
@@ -26,7 +26,7 @@ import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 @Injectable()
 export class ProfileService {
   constructor(
-    private storageService: GCStorageService,
+    private storageService: StorageService,
     private usersService: UsersService,
     private orderService: OrdersService,
   ) {}
