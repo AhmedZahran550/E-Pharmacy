@@ -14,7 +14,11 @@ export default registerAs('database', (): TypeOrmModuleOptions => {
     logging: process.env.DB_LOGGING === 'true',
     entities: [`${__dirname}/../database/entities/*.entity{.ts,.js}`],
     namingStrategy: new CustomNamingStrategy(),
-    // migrations: [`${__dirname}/../../db/migrations/*{.ts,.js}`],
+
+    // --- ADD THIS SECTION ---
+    // Most cloud providers require "rejectUnauthorized: false" to allow self-signed certs
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    // ------------------------
   };
   return dbConfig;
 });
