@@ -1,7 +1,7 @@
 import constants from '@/common/constants';
 import { Gender } from '@/common/models/gender.model';
 import { NAME_REGEX } from '@/common/regex.const';
-import { Relationship, User, UserType } from '@/database/entities/user.entity';
+import { Relationship } from '@/database/entities/user.entity';
 import {
   IsArray,
   IsBoolean,
@@ -63,9 +63,12 @@ export class CreateUserDto {
 
   mobileVerified?: boolean;
 
+  @IsString()
   @IsOptional()
-  @IsEnum(UserType)
-  type?: UserType;
+  @Matches(constants.regex.password, {
+    message: 'validation.INVALID_PASSWORD',
+  })
+  password: string;
 
   @IsString()
   @IsNid({ message: 'validation.INVALID_NID' })

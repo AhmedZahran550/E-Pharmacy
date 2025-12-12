@@ -2,7 +2,7 @@ import constants from '@/common/constants';
 import { ErrorCodes } from '@/common/error-codes';
 import { FieldError } from '@/common/models/error-response';
 import { handleError } from '@/database/db.errors';
-import { User, UserStatus, UserType } from '@/database/entities/user.entity';
+import { User } from '@/database/entities/user.entity';
 import { LocalizationService } from '@/i18n/localization.service';
 import { IdentityConfirmationDto } from '@/modules/auth/dto/identity-confirmation.dto';
 import {
@@ -20,7 +20,7 @@ import { v4 as uuid } from 'uuid';
 import { EmployeesService } from '../employees/employees.service';
 import { UsersService } from '../users/users.service';
 import { AuthUserDto } from './dto/auth-user.dto';
-import { Client, CredentialsDto } from './dto/credentials.dto';
+import { Client, CredentialsDto, GrantType } from './dto/credentials.dto';
 import { SignUpDto } from './dto/signup.dto';
 import { OtpService } from './otp.service';
 import { Role } from './role.model';
@@ -77,14 +77,14 @@ export class AuthService {
   }
 
   async signIn(dto: CredentialsDto) {
-    if (dto.grant_type === 'password') {
-      return await this.signInWithCredentials(dto);
+    if (dto.grant_type === 'password' && dto.client_id === Client.PORTAL) {
+      return await this.signInPortalUser(dto);
     } else if (dto.grant_type === 'guest') {
       return await this.signInAsGuest();
     } else if (dto.grant_type === 'refresh_token') {
       return await this.refreshToken(dto);
-    } else if (dto.grant_type === 'otp') {
-      return await this.signInWithOTP(dto);
+    } else if (dto.client_id === Client.MOBILE_APP) {
+      return await this.signInMobileApp(dto);
     } else {
       throw new BadRequestException([
         {
@@ -94,69 +94,9 @@ export class AuthService {
       ]);
     }
   }
-
-  async identityConfirmation(
-    data: IdentityConfirmationDto,
-    authUser: AuthUserDto,
-  ) {
-    const currentUser = await this.usersService.findById(authUser.id, {
-      select: ['identityConfirmedTrials', 'nationalId', 'id'],
-    });
-
-    if (currentUser.identityConfirmedTrials > 3) {
-      throw new BadRequestException([
-        {
-          property: 'identityId',
-          code: ErrorCodes.MAX_TRIALS_EXCEEDED,
-        },
-      ]);
-    }
-    const identityId = hmacHashing(data.identityId);
-    if (data.identityConfirmed) {
-      if (identityId === currentUser.nationalId) {
-        await this.usersService.update(authUser.id, {
-          identityConfirmed: true,
-        });
-      } else {
-        let identityConfirmedTrials = currentUser.identityConfirmedTrials ?? 0;
-        await this.usersService.update(authUser.id, {
-          identityConfirmedTrials:
-            (currentUser.identityConfirmedTrials ?? 0) + 1,
-          locked: identityConfirmedTrials > 2,
-          lockedAt: identityConfirmedTrials > 2 ? new Date() : undefined,
-        });
-        throw new BadRequestException([
-          {
-            property: 'identityId',
-            code: ErrorCodes.INVALID_IDENTITY,
-          },
-        ]);
-      }
-    } else {
-      return await this.usersService.update(currentUser.id, {
-        identityConfirmed: false,
-      });
-    }
-  }
-
   async signUp(signUpDto: SignUpDto) {
     try {
       signUpDto.isPrincipal = true;
-      const whiteList = this.config
-        .get('SIGNUP_MOBILE_NUMBERS_WHITE_LIST')
-        ?.split(',') as string[];
-      if (whiteList && whiteList.length > 0) {
-        const isWhitelisted = whiteList.includes(signUpDto.mobile);
-        if (!isWhitelisted) {
-          throw new ForbiddenException([
-            {
-              property: 'mobile',
-              message: 'Mobile number is not whitelisted',
-              code: ErrorCodes.MOBILE_NOT_WHITELISTED,
-            },
-          ]);
-        }
-      }
       await this.checkUserExists(signUpDto);
       const newUser = await this.usersService.create(signUpDto);
       if (newUser.email && !newUser.emailVerified) {
@@ -170,6 +110,7 @@ export class AuthService {
       handleError(error);
     }
   }
+
   async checkUserExists(signUpDto: SignUpDto) {
     const nationalId =
       signUpDto.nationalId && hmacHashing(signUpDto.nationalId);
@@ -219,7 +160,7 @@ export class AuthService {
     }
   }
 
-  async signInWithCredentials(dto: CredentialsDto) {
+  async signInPortalUser(dto: CredentialsDto) {
     try {
       if (this.isSuperAdmin(dto)) {
         return await this.getAdminToken(dto);
@@ -245,12 +186,15 @@ export class AuthService {
     return { ...token, user: user };
   }
 
-  async signInWithOTP(dto: CredentialsDto) {
+  async signInMobileApp(dto: CredentialsDto) {
     try {
-      await this.otpService.verifyOtp(dto.mobile, dto.otp);
-
-      const user = await this.getAuthUser({ mobile: dto.mobile });
-
+      if (dto.grant_type === GrantType.OTP) {
+        await this.otpService.verifyOtp(dto.mobile, dto.otp);
+      }
+      const filters = dto.username
+        ? { email: dto.username }
+        : { mobile: dto.mobile };
+      const user = await this.getAuthUser(filters);
       if (!user) {
         throw new BadRequestException([
           {
@@ -259,14 +203,10 @@ export class AuthService {
           },
         ]);
       }
-      if (user.status !== UserStatus.ACTIVE) {
-        throw new ForbiddenException({
-          message: 'User is not active',
-          code: ErrorCodes.NO_ACTIVE_SUBSCRIPTION,
-        });
+      if (dto.grant_type === GrantType.PASSWORD) {
+        this.verifyUserPassword(dto, user);
       }
       const authResponse = await this.getAuthResponse(user);
-
       if (dto.device_token) {
         await this.appTokenRepository.upsert(
           {
@@ -304,10 +244,7 @@ export class AuthService {
           );
         }
         return resp;
-      } else if (
-        payload.clients.includes(Client.PROVIDER) ||
-        payload.clients.includes(Client.CUSTOMER)
-      ) {
+      } else if (payload.clients.includes(Client.PORTAL)) {
         const employee = await this.employeesService.findByEmail(payload.email);
         this.VerifyEmployee(employee);
         const resp = await this.employeeToAuthUser(employee);
@@ -336,6 +273,7 @@ export class AuthService {
       .leftJoin('ownerSubscription.plan', 'ownerPlan')
       .leftJoin('ownerSubscription.orders', 'ownerOrders')
       .addSelect([
+        'password',
         'orders.id',
         'orders.status',
         'plan.id',
@@ -435,7 +373,7 @@ export class AuthService {
       email: user.email,
       branchId: user.branch?.id,
       providerId: user.branch?.provider?.id,
-      clients: [Client.PROVIDER],
+      clients: [Client.PORTAL],
     };
     return await this.generateToken(payload);
   }
@@ -482,7 +420,7 @@ export class AuthService {
       sub: id,
       email: user.email,
       roles: user.roles,
-      clients: [Client.ADMIN_PORTAL, Client.PROVIDER_PORTAL],
+      clients: [Client.PORTAL, Client.PORTAL],
     };
     const token = await this.generateToken(payload);
     return { ...token, user };
@@ -502,6 +440,17 @@ export class AuthService {
     }
     delete employee.password;
     return employee;
+  }
+  private async verifyUserPassword(dto: CredentialsDto, user: User) {
+    const matched = await argon.verify(user.password, dto.password);
+    if (!matched) {
+      throw new UnauthorizedException({
+        message: 'Invalid credentials',
+        code: ErrorCodes.INVALID_CREDENTIALS,
+      });
+    }
+    delete user.password;
+    return user;
   }
 
   private VerifyEmployee(employee: Employee) {
@@ -534,15 +483,7 @@ export class AuthService {
     if (employee.policies && employee.policies?.length > 0) {
       policies = this.serializePolicies(employee.policies);
     }
-    if (employee.roles.includes(Role.CUSTOMER_USER)) {
-      payload = {
-        sub: employee.id,
-        roles: employee.roles,
-        policies,
-        email: employee.email,
-        clients: [Client.CUSTOMER],
-      };
-    } else if (employee.roles.includes(Role.PROVIDER_USER)) {
+    if (employee.roles.includes(Role.PROVIDER_USER)) {
       payload = {
         sub: employee.id,
         roles: employee.roles,
@@ -550,7 +491,7 @@ export class AuthService {
         policies,
         branchId: employee.branch?.id,
         providerId: employee.branch?.provider.id,
-        clients: [Client.CUSTOMER],
+        clients: [Client.PORTAL],
       };
     } else if (employee.roles.includes(Role.ADMIN)) {
       payload = {
@@ -558,7 +499,7 @@ export class AuthService {
         roles: employee.roles,
         policies,
         email: employee.email,
-        clients: [Client.ADMIN_PORTAL],
+        clients: [Client.PORTAL],
       };
     } else if (
       employee.roles.includes(Role.SYSTEM_ADMIN) ||
@@ -569,7 +510,7 @@ export class AuthService {
         roles: employee.roles,
         policies,
         email: employee.email,
-        clients: [Client.Pharmacy_PORTAL],
+        clients: [Client.PORTAL],
       };
     } else {
       throw new BadRequestException([

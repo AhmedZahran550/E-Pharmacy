@@ -1,6 +1,5 @@
 import constants from '@/common/constants';
-import { IsUUIDObj, UUIDObject } from '@/common/decorators/isObjId.decorator';
-import { Relationship, UserStatus } from '@/database/entities/user.entity';
+import { Relationship } from '@/database/entities/user.entity';
 import { CreateUserDto } from '@/modules/users/dto/create-user.dto';
 import { OmitType } from '@nestjs/mapped-types';
 import {
@@ -38,6 +37,4 @@ export class CreateMemberDto extends OmitType(CreateUserDto, [
   @IsOptional()
   @IsString()
   familyId: string;
-
-  status?: UserStatus;
 }

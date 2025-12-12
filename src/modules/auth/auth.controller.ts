@@ -67,15 +67,6 @@ export class AuthController {
     return this.authService.refreshToken(dto);
   }
 
-  @Post('identity-confirmation')
-  @Roles(Role.APP_USER)
-  async identityConfirmation(
-    @Body() data: IdentityConfirmationDto,
-    @AuthUser() user: AuthUserDto,
-  ) {
-    return await this.authService.identityConfirmation(data, user);
-  }
-
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Get('policies/subject')
   async getPoliciesSubjects() {

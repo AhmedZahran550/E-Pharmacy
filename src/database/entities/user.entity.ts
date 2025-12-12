@@ -7,14 +7,15 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
 } from 'typeorm';
 import { DateColumn } from '../../common/decorators/date-column.decorator';
 import { Role } from '../../modules/auth/role.model';
 import { BaseEntity } from './base.entity';
-
+import * as argon from 'argon2';
 import { Notification } from './notification.entity';
-
 import { DecimalColumn } from '../decimal-column.decorator';
 import { Order } from './order.entity';
 import { DeviceToken } from './device-token.entity';
@@ -26,15 +27,10 @@ export const USER_EMAIL_IDX = 'user_email_idx';
 export const USER_MOBILE_IDX = 'user_mobile_idx';
 export const USER_NID_IDX = 'user_nid_idx';
 
-export enum UserType {
-  INDIVIDUAL = 'individual',
-  CORPORATE = 'corporate',
-}
-
-export enum UserStatus {
-  ACTIVE = 'active',
-  PENDING_SUBSCRIPTION = 'pending_subscription',
-}
+// export enum UserStatus {
+//   ACTIVE = 'active',
+//   PENDING_SUBSCRIPTION = 'pending_subscription',
+// }
 
 export enum Relationship {
   PRINCIPAL = 'principal',
@@ -49,9 +45,9 @@ export interface UserPreferences {
   emailNotifications: boolean;
 }
 
-const LOCKED_DURATION_IN_MINUTES: number = process.env.LOCKED_DURATION
-  ? parseInt(process.env.LOCKED_DURATION)
-  : 30;
+// const LOCKED_DURATION_IN_MINUTES: number = process.env.LOCKED_DURATION
+//   ? parseInt(process.env.LOCKED_DURATION)
+//   : 30;
 @Entity({ name: 'user' })
 @Index('UQ_mobile_verified', ['mobile'], {
   unique: true,
@@ -150,12 +146,9 @@ export class User extends BaseEntity {
   @Column({ nullable: true, default: false })
   disabled?: boolean;
 
-  @Column({
-    type: 'enum',
-    enum: UserStatus,
-    default: UserStatus.ACTIVE,
-  })
-  status: UserStatus;
+  @Exclude()
+  @Column({ select: false })
+  password: string;
 
   @Column({
     type: 'enum',
@@ -199,6 +192,26 @@ export class User extends BaseEntity {
   })
   orders?: Order[];
 
+  @Column({ name: 'owner_id', nullable: true, type: 'uuid' })
+  ownerId: string; // This should be included automatically
+
+  @ManyToOne(() => User, (user) => user.members)
+  @JoinColumn({ name: 'owner_id' })
+  owner: User;
+
+  @OneToMany(() => User, (user) => user.owner)
+  members: User[];
+
+  @Column({ nullable: true })
+  familyId?: string;
+
+  @Column({
+    type: 'boolean',
+    asExpression: `"is_principal" = true AND "family_id" IS NOT NULL`,
+    generatedType: 'STORED',
+  })
+  isFamilyManager?: boolean;
+
   @DecimalColumn({ precision: 10, scale: 2, default: 0.0 })
   currentBalance: number;
 
@@ -224,6 +237,12 @@ export class User extends BaseEntity {
     }
     if (this.locked && !this.lockedAt) {
       this.lockedAt = new Date();
+    }
+    if (this.password && this.password?.startsWith('$argon2')) {
+      return;
+    }
+    if (this.password) {
+      this.password = await argon.hash(this.password);
     }
   }
 

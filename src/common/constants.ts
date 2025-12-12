@@ -1,6 +1,8 @@
 export const constants = {
   regex: {
     mobile: /^(?:10|11|12|15)\d{8}$/,
+    password:
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     otp: /^\d{6}$/,
   },
 

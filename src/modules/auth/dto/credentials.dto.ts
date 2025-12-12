@@ -20,12 +20,7 @@ export enum GrantType {
 
 export enum Client {
   MOBILE_APP = 'mobile_app',
-  PROVIDER_PORTAL = 'provider_portal',
-  PROVIDER = 'provider_portal',
-  CUSTOMER = 'customer_portal',
-  Pharmacy = 'Pharmacy',
-  Pharmacy_PORTAL = 'Pharmacy_portal',
-  ADMIN_PORTAL = 'admin_portal',
+  PORTAL = 'portal',
 }
 
 export class DeviceInfo {
@@ -93,7 +88,6 @@ export class CredentialsDto {
 
   @ApiProperty()
   @IsEnum(Client)
-  @IsOptional()
   client_id: Client;
 
   @ApiProperty()
