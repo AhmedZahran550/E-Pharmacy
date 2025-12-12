@@ -158,10 +158,10 @@ export class AuthService {
     const credentials = process.env.ADMIN_CREDENTIALS;
     if (credentials) {
       const [username, password] = credentials.split(':');
-      return dto.username === username && dto.password === password;
+      return dto.email === username && dto.password === password;
     } else {
       return (
-        dto.username === process.env.ADMIN_EMAIL &&
+        dto.email === process.env.ADMIN_EMAIL &&
         dto.password === process.env.ADMIN_PASSWORD
       );
     }
@@ -198,18 +198,10 @@ export class AuthService {
       if (dto.grant_type === GrantType.OTP) {
         await this.otpService.verifyOtp(dto.mobile, dto.otp);
       }
-      const filters = dto.username
-        ? { email: dto.username }
-        : { mobile: dto.mobile };
+      const filters = dto.mobile
+        ? { mobile: dto.mobile }
+        : { email: dto.email };
       const user = await this.getAuthUser(filters);
-      if (!user) {
-        throw new BadRequestException([
-          {
-            property: 'mobile',
-            code: ErrorCodes.USER_NOT_FOUND,
-          },
-        ]);
-      }
       if (dto.grant_type === GrantType.PASSWORD) {
         this.verifyUserPassword(dto, user);
       }
@@ -270,48 +262,19 @@ export class AuthService {
   }
 
   private async getAuthUser(filters: Record<string, any>) {
-    const qb = await this.usersService
-      .getQueryBuilder({ alias: 'user' })
-      .leftJoinAndSelect('user.subscriptions', 'subscription')
-      .leftJoin('subscription.plan', 'plan')
-      .leftJoin('subscription.orders', 'orders')
-      .leftJoinAndSelect('user.owner', 'owner')
-      .leftJoin('owner.subscriptions', 'ownerSubscription')
-      .leftJoin('ownerSubscription.plan', 'ownerPlan')
-      .leftJoin('ownerSubscription.orders', 'ownerOrders')
-      .addSelect([
-        'password',
-        'orders.id',
-        'orders.status',
-        'plan.id',
-        'plan.localizedName.en',
-        'plan.localizedName.ar',
-        'ownerOrders.id',
-        'ownerOrders.status',
-        'ownerPlan.id',
-        'ownerPlan.localizedName.en',
-        'ownerPlan.localizedName.ar',
-        'subscription.id',
-        'subscription.startDate',
-        'subscription.endDate',
-        'subscription.status',
-        'ownerSubscription.id',
-        'ownerSubscription.startDate',
-        'ownerSubscription.endDate',
-        'ownerSubscription.status',
-      ]);
+    console.log(filters);
 
-    // Sort user's direct subscriptions by endDate descending
-    qb.orderBy('subscription.endDate', 'DESC');
-    // Sort owner's subscriptions by endDate descending
-    qb.addOrderBy('ownerSubscription.endDate', 'DESC');
+    const qb = this.usersService
+      .getQueryBuilder({ alias: 'user' })
+      .leftJoinAndSelect('user.owner', 'owner')
+      .addSelect(['user.password']);
     if (filters) {
       for (const key in filters) {
         const value = filters[key];
         qb.andWhere(`user.${key} = :${key}`, { [key]: value });
       }
     }
-    return qb.getOne();
+    return qb.getOneOrFail();
   }
 
   private verifyUserAccess(user: User) {
@@ -354,7 +317,6 @@ export class AuthService {
     }
     user.lastLoginDate = new Date();
     await this.usersService.update(user.id, user);
-    const authUser = new AuthUserDto(user);
     const payload: TokenPayload = {
       sub: user.id,
       roles: user.roles,
@@ -434,7 +396,7 @@ export class AuthService {
   }
 
   private async fetchAndVerifyEmployee(dto: CredentialsDto) {
-    const employee = await this.employeesService.findByEmail(dto.username, [
+    const employee = await this.employeesService.findByEmail(dto.email, [
       'password',
     ]);
     this.VerifyEmployee(employee);

@@ -49,7 +49,7 @@ export class CredentialsDto {
   @ValidateIf((o) => o.grant_type === 'password')
   @IsString()
   @IsNotEmpty()
-  username: string;
+  email: string;
 
   @ApiProperty()
   @ValidateIf((o) => o.grant_type === 'otp')

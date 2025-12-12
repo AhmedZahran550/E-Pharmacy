@@ -72,7 +72,7 @@ export class ProfileService {
             const user = await manager.findOneOrFail(User, {
               where: { id: userId },
             });
-            await this.checkAndRewardProfileCompletion(user, manager);
+            // await this.checkAndRewardProfileCompletion(user, manager);
             user.photoUrl = obj.url;
             const savedUser = await manager.save(user);
             return savedUser;
