@@ -117,7 +117,6 @@ export class AuthService {
     const qb = this.usersService.repository
       .createQueryBuilder('user')
       .addSelect('user.nationalId')
-      .addSelect('user.passportId')
       .where('user.nationalId = :nationalId  OR user.mobile = :mobile', {
         nationalId,
         mobile: signUpDto.mobile,
@@ -130,6 +129,14 @@ export class AuthService {
             {
               property: 'nationalId',
               code: ErrorCodes.NATIONAL_ID_ALREADY_EXISTS,
+            },
+          ]);
+        }
+        if (user.email === signUpDto.email) {
+          throw new BadRequestException([
+            {
+              property: 'email',
+              code: ErrorCodes.EMAIL_ALREADY_EXIST,
             },
           ]);
         }
