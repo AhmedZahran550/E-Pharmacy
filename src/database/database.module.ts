@@ -13,6 +13,7 @@ import { ActivityLog } from './entities/activity-log.entity';
 import { Notification } from './entities/notification.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
+import { OrderHistory } from './entities/order-history.entity';
 import { Provider } from './entities/provider.entity';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { DeviceToken } from './entities/device-token.entity';
@@ -37,6 +38,7 @@ import { DeviceToken } from './entities/device-token.entity';
       Item,
       Order,
       OrderItem,
+      OrderHistory,
       Notification,
       ActivityLog,
       City,

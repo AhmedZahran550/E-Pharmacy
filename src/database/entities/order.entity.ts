@@ -15,25 +15,25 @@ import { DecimalColumn } from '../decimal-column.decorator';
 import { BaseEntity } from './base.entity';
 import { Branch } from './branch.entity';
 import { User } from './user.entity';
+import { OrderHistory } from './order-history.entity';
 
 export enum OrderType {
-  ITEM_ORDER = 'ITEM_ORDER',
-  SUBSCRIPTION_ORDER = 'SUBSCRIPTION_ORDER',
+  DELIVERY = 'DELIVERY',
+  PICKUP = 'PICKUP',
 }
 
 export enum OrderStatus {
   NEW = 'NEW',
-  PENDING = 'PENDING',
-  PENDING_PAYMENT = 'PENDING_PAYMENT',
-  COMPLETED = 'COMPLETED',
-  CONFIRMED = 'CONFIRMED',
-  PENDING_VERIFICATION = 'PENDING_VERIFICATION',
-  PENDING_CONFIRMATION = 'PENDING_CONFIRMATION',
-  PENDING_APPROVAL = 'PENDING_APPROVAL',
+  ACCEPTED = 'ACCEPTED',
+  READY = 'READY',
+  OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
+  DELIVERED = 'DELIVERED',
+  PICKED_UP = 'PICKED_UP',
   REJECTED = 'REJECTED',
   CANCELED = 'CANCELED',
   EXPIRED = 'EXPIRED',
 }
+
 @Entity({ name: 'order' })
 @Index('ORDER_USER_IDX', ['user'])
 @Index('ORDER_BRANCH_IDX', ['branch'])
@@ -88,6 +88,12 @@ export class Order extends BaseEntity {
   @Column({ nullable: true })
   appliedCode: string;
 
+  @Column({ nullable: true })
+  imageUrl?: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  items?: any[];
+
   @ManyToOne(() => User, {
     onDelete: 'CASCADE',
   })
@@ -99,6 +105,9 @@ export class Order extends BaseEntity {
     nullable: true,
   })
   branch: Branch;
+
+  @OneToMany(() => OrderHistory, (history) => history.order)
+  history?: OrderHistory[];
 
   @Column({
     type: 'boolean',
