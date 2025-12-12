@@ -11,6 +11,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import fileInterceptorOptions from '@/common/interceptors/file-interceptor-options';
+import { FileRequiredPipe } from '@/common/pipes/file-required.pipe';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthUser } from '../auth/decorators/auth-user.decorator';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
@@ -38,9 +40,10 @@ export class ProfileController {
     return this.profileService.updateProfile(user, body);
   }
 
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('image', fileInterceptorOptions))
+  @Patch('photo')
   async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile(FileRequiredPipe) file: Express.Multer.File,
     @AuthUser() user: AuthUserDto,
   ) {
     await this.profileService.updateProfilePhoto(file, user.id);

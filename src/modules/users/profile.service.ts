@@ -60,12 +60,15 @@ export class ProfileService {
 
   async updateProfilePhoto(file: Express.Multer.File, userId: string) {
     try {
-      console.log('Updating profile photo for user:', userId);
       const uuid = uuidv4();
       const fileName = `profile-${userId}-${uuid}`;
       const extension = path.extname(file.originalname).toLowerCase();
-      const filePath = `Pharmacy/uploads/profile/${fileName}${extension}`;
-      const obj = await this.storageService.saveFile(file, filePath);
+      const filePath = `${fileName}${extension}`;
+      const obj = await this.storageService.saveFile(
+        file,
+        filePath,
+        'Pharmacy/uploads/profile',
+      );
       const updatedUser =
         await this.usersService.repository.manager.transaction(
           async (manager) => {

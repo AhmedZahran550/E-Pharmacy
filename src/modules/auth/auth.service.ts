@@ -203,7 +203,7 @@ export class AuthService {
         : { email: dto.email };
       const user = await this.getAuthUser(filters);
       if (dto.grant_type === GrantType.PASSWORD) {
-        this.verifyUserPassword(dto, user);
+        await this.verifyUserPassword(dto, user);
       }
       const authResponse = await this.getAuthResponse(user);
       if (dto.device_token) {
@@ -262,8 +262,6 @@ export class AuthService {
   }
 
   private async getAuthUser(filters: Record<string, any>) {
-    console.log(filters);
-
     const qb = this.usersService
       .getQueryBuilder({ alias: 'user' })
       .leftJoinAndSelect('user.owner', 'owner')
@@ -411,6 +409,7 @@ export class AuthService {
     return employee;
   }
   private async verifyUserPassword(dto: CredentialsDto, user: User) {
+    console.log(dto.password, user.password);
     const matched = await argon.verify(user.password, dto.password);
     if (!matched) {
       throw new UnauthorizedException({

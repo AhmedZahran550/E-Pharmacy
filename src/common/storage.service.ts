@@ -16,9 +16,7 @@ export interface StorageService {
   saveFile(
     file: Express.Multer.File,
     filePath: string,
-    options?: {
-      bucketName: string;
-    },
+    folder: string,
   ): Promise<FileMetadata>;
   readFile(filePath: string): Promise<Buffer>;
   deleteFile(filePath: string): Promise<void>;
@@ -37,16 +35,14 @@ export class StorageService {
   async saveFile(
     file: Express.Multer.File,
     filePath: string,
-    options?: {
-      bucketName: string;
-    },
+    folder: string,
   ): Promise<FileMetadata & { publicUrl: string; url: string }> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           public_id: filePath.replace(/\.[^/.]+$/, ''), // Remove extension, let Cloudinary handle it or keep it
           resource_type: 'auto',
-          // folder: options?.bucketName, // Map bucketName to folder if desired, or skip
+          folder, // Map bucketName to folder if desired, or skip
         },
         (error, result) => {
           if (error) {
