@@ -101,21 +101,6 @@ export class ItemsService extends DBService<Item, CreateServiceDto> {
     }
   }
 
-  findByType(query: QueryOptions, type?: string) {
-    const qb = this.repository
-      .createQueryBuilder('item')
-      .innerJoin('item.specialityItems', 'si')
-      .innerJoin('si.speciality', 'sp')
-      .innerJoin('sp.sectionSpecialities', 'ss')
-      .innerJoin('ss.section', 'sec')
-      .innerJoin('sec.providerTypeSections', 'pts')
-      .innerJoin('pts.providerType', 'pt');
-    if (type) {
-      qb.where('pt.code = :type', { type });
-    }
-    return this.findAll(query, qb);
-  }
-
   async findProviderItems(providerId: string, query?: QueryOptions) {
     const qb = this.repository
       .createQueryBuilder('item')

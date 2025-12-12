@@ -24,16 +24,17 @@ import { CreateServiceDto } from './dto/create-item.dto';
 import { ItemsService } from './items.service';
 import { ErrorCodes } from '@/common/error-codes';
 import { Cacheable } from '@/common/decorators/cache.decorator';
+
 @ApiTags('Items')
+@Roles(Role.USER, Role.GUEST)
 @Controller('items')
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Get()
-  @Roles(Role.USER, Role.GUEST)
   @Cacheable({ key: 'item:all', ttl: 2592000 }) // 1 month
   @ApiQuery(CreateServiceDto)
-  findAll(@Paginate() query: QueryOptions, @Query('type') type?: string) {
-    return this.itemsService.findByType(query, type);
+  findAll(@Paginate() query: QueryOptions) {
+    return this.itemsService.findAll(query);
   }
 }

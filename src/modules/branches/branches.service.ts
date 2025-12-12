@@ -16,22 +16,10 @@ import {
   Optional,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FilterOperator, Paginated } from 'nestjs-paginate';
-import {
-  DataSource,
-  FindOneOptions,
-  In,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm';
+import { FilterOperator } from 'nestjs-paginate';
+import { DataSource, Repository } from 'typeorm';
 import { CreateBranchDto } from './dto/create-branch.dto';
-import { UpdateBranchDto } from './dto/update-branch.dto';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { AuthUserDto } from '../auth/dto/auth-user.dto';
-import { BranchActionDto, BranchActionType } from './dto/action-branch.dto';
-import { Cache } from 'cache-manager';
 import { CacheService } from '@/common/cache.service';
-import { format, getDay } from 'date-fns';
 
 export const BRANCHES_PAGINATION_CONFIG: QueryConfig<Branch> = {
   sortableColumns: [...localizedQueryConfig.sortableColumns],

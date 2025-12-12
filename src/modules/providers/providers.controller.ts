@@ -1,32 +1,32 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { BranchesService } from './branches.service';
+import { ProvidersService } from './providers.service';
 import { ApiQuery } from '@/common/decorators/pagination-query.decorator';
+import { CreateProviderDto } from './dto/create-provider.dto';
 import { Paginate } from 'nestjs-paginate';
 import { QueryOptions } from '@/common/query-options';
 import { Cacheable } from '@/common/decorators/cache.decorator';
-import { CreateBranchDto } from './dto/create-branch.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.model';
 
-@ApiTags('Branches')
+@ApiTags('Providers')
+@Controller('providers')
 @Roles(Role.APP_USER, Role.GUEST, Role.ANONYMOUS)
-@Controller('branches')
-export class BranchesController {
-  constructor(private readonly branchesService: BranchesService) {}
+export class ProvidersController {
+  constructor(private readonly providersService: ProvidersService) {}
 
-  @ApiQuery(CreateBranchDto)
+  @ApiQuery(CreateProviderDto)
   @Get()
   // Cache TTL: 86400 seconds (24 hours)
-  @Cacheable({ key: 'branches:all', ttl: 86400 })
+  @Cacheable({ key: 'providers:all', ttl: 86400 })
   findAll(@Paginate() query: QueryOptions) {
-    return this.branchesService.findAll(query);
+    return this.providersService.findAll(query);
   }
 
   @Get(':id')
   // Cache TTL: 3600 seconds (1 hour)
-  @Cacheable({ key: 'branch:{{id}}', ttl: 3600 })
+  @Cacheable({ key: 'provider:{{id}}', ttl: 3600 })
   findOne(@Param('id') id: string) {
-    return this.branchesService.findById(id);
+    return this.providersService.findById(id);
   }
 }

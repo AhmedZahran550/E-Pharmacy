@@ -55,20 +55,6 @@ export class Provider extends BaseEntity {
   @Column({ default: false })
   requireOrderOTP: boolean;
 
-  @Column({ default: false })
-  ratingHidden: boolean;
-
-  @Column({ default: false })
-  ratingDisabled: boolean;
-
-  @Column({
-    type: 'enum',
-    enum: ClosingPeriodType,
-    default: ClosingPeriodType.MONTHLY,
-    nullable: true,
-  })
-  closingPeriodType: ClosingPeriodType;
-
   @Column({
     type: 'tsvector',
     generatedType: 'STORED',

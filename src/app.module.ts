@@ -25,6 +25,7 @@ import { baseConfig } from './config/base.config';
 import databaseConfig from './config/database.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { BranchesModule } from './modules/branches/branches.module';
+import { ProvidersModule } from './modules/providers/providers.module';
 import { EmployeesModule } from './modules/employees/employees.module';
 import { UsersModule } from './modules/users/users.module';
 import { schemaValidator } from './config/schema-validator';
@@ -39,6 +40,7 @@ import { DBExceptionFilter } from './common/filters/db-exception.filter';
 import { AppController } from './app.controller';
 import { LogsModule } from './modules/logs/logs.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ItemsModule } from './modules/items/items.module';
 const envFolderPath = `${__dirname}/config/env`;
 
 const envFilePath = [
@@ -102,6 +104,7 @@ const envFilePath = [
     LogsModule,
     UsersModule,
     BranchesModule,
+    ProvidersModule,
     SharedModule,
     EmployeesModule,
     LocalizationModule,
@@ -109,6 +112,7 @@ const envFilePath = [
     EmailModule,
     NotificationsModule,
     LogsModule,
+    ItemsModule,
   ],
   providers: [
     {
