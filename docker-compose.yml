@@ -1,23 +1,14 @@
 services:
   db:
-    container_name: db
+    container_name: pharmacy_db
     image: postgis/postgis
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: pharmacy
     ports:
       - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
-  db-e2e:
-    container_name: db-e2e
-    image: postgis/postgis
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: medyour_e2e
-    ports:
-      - '5433:5432'
 volumes:
   pgdata: {}
