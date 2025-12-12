@@ -212,6 +212,12 @@ export class User extends BaseEntity {
   })
   isFamilyManager?: boolean;
 
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  is_principal?: boolean;
+
   @DecimalColumn({ precision: 10, scale: 2, default: 0.0 })
   currentBalance: number;
 

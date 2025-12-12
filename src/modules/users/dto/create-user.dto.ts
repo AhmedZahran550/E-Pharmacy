@@ -41,6 +41,12 @@ export class CreateUserDto {
   middleName?: string;
 
   @IsString()
+  @Matches(constants.regex.password, {
+    message: 'validation.INVALID_PASSWORD',
+  })
+  password: string;
+
+  @IsString()
   @Length(2, 20)
   @Matches(NAME_REGEX)
   lastName: string;
@@ -62,13 +68,6 @@ export class CreateUserDto {
   mobile: string;
 
   mobileVerified?: boolean;
-
-  @IsString()
-  @IsOptional()
-  @Matches(constants.regex.password, {
-    message: 'validation.INVALID_PASSWORD',
-  })
-  password: string;
 
   @IsString()
   @IsNid({ message: 'validation.INVALID_NID' })

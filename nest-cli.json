@@ -3,20 +3,12 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "webpack": true,
     "assets": [
-      {
-        "include": "i18n/**/*",
-        "watchAssets": true,
-        "outDir": "dist"
-      },
-      {
-        "include": "templates/**/*.hbs",
-        "outDir": "dist"
-      },
+      { "include": "i18n/**/*", "watchAssets": true, "outDir": "dist/src/" },
+      { "include": "templates/**/*.hbs", "outDir": "dist/src" },
       {
         "include": "config/env/**/*.env",
-        "outDir": "dist"
+        "outDir": "dist/src"
       }
     ]
   }
