@@ -14,12 +14,6 @@ export default registerAs('database', (): TypeOrmModuleOptions => {
     logging: process.env.DB_LOGGING === 'true',
     entities: [`${__dirname}/../database/entities/*.entity{.ts,.js}`],
     namingStrategy: new CustomNamingStrategy(),
-    ssl: true,
-    extra: {
-      ssl: {
-        rejectUnauthorized: false, // This resolves the "self-signed certificate" errors common with cloud DBs
-      },
-    },
     // migrations: [`${__dirname}/../../db/migrations/*{.ts,.js}`],
   };
   return dbConfig;
