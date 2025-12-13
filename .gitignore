@@ -45,3 +45,5 @@ src/config/env/*
 
 i18n.generated.ts
 .vercel
+
+/src/database/migrations

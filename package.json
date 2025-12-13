@@ -25,10 +25,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "typeorm": "ts-node --require tsconfig-paths/register ./node_modules/typeorm/cli",
-    "migration:run": "yarn typeorm migration:run -- -d ./db/typeorm.config.ts",
     "db:restart:e2e": "docker-compose down db-e2e && docker-compose up db-e2e -d && sleep 2",
-    "test:e2e": "cross-env NODE_ENV=e2e jest -i --no-cache --watchAll --runInBand --detectOpenHandles --forceExit --config ./test/e2e/jest-e2e.ts"
+    "test:e2e": "cross-env NODE_ENV=e2e jest -i --no-cache --watchAll --runInBand --detectOpenHandles --forceExit --config ./test/e2e/jest-e2e.ts",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --dataSource ./db/typeorm.config.ts",
+    "typeorm:migrate": "yarn typeorm migration:run",
+    "typeorm:generate": "yarn typeorm migration:generate",
+    "typeorm:revert": "yarn typeorm migration:revert"
   },
   "engines": {
     "npm": "Please use yarn"

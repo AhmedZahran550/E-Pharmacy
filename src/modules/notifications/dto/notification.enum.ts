@@ -125,13 +125,6 @@ export enum SystemNotificationType {
   NEW_MESSAGE_ON_SUPPORT_TICKET = 'NEW_MESSAGE_ON_SUPPORT_TICKET',
 }
 
-export enum NotificationChannel {
-  CUSTOMER_PORTAL = 'CUSTOMER_PORTAL',
-  PROVIDER_PORTAL = 'PROVIDER_PORTAL',
-  ADMIN_PORTAL = 'ADMIN_PORTAL',
-  MOBILE_APP = 'MOBILE_APP',
-}
-
 export enum RelatedEntityType {
   ORDER = 'ORDER',
   SUBSCRIPTION = 'SUBSCRIPTION',

@@ -24,6 +24,7 @@ import { Exclude } from 'class-transformer';
 import * as argon from 'argon2';
 
 import { DecimalColumn } from '../decimal-column.decorator';
+import { SystemNotification } from './system-notification.entity';
 
 @Entity({ name: 'branch' })
 @Index('BRANCH_LOCATION_UNIQUE_IDX', ['provider', 'longitude', 'latitude'], {
@@ -104,6 +105,9 @@ export class Branch extends BaseEntity {
 
   @OneToMany(() => BranchItem, (providerItem) => providerItem.branch)
   items: BranchItem[];
+
+  @OneToMany(() => SystemNotification, (notification) => notification.branch)
+  notifications: SystemNotification[];
 
   @Exclude()
   @Column({ select: false, nullable: true })

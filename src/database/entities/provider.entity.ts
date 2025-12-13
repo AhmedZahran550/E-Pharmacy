@@ -18,6 +18,7 @@ import { EmbededLocalizedName } from './embeded/localized-name.entity';
 
 import { Exclude } from 'class-transformer';
 import * as argon from 'argon2';
+import { SystemNotification } from './system-notification.entity';
 
 export enum ClosingPeriodType {
   DAILY = 'DAILY',
@@ -67,6 +68,9 @@ export class Provider extends BaseEntity {
   @Exclude()
   @Column({ select: false, nullable: true })
   adminPassword: string;
+
+  @OneToMany(() => SystemNotification, (notification) => notification.provider)
+  notifications: SystemNotification[];
 
   @BeforeInsert()
   @BeforeUpdate()

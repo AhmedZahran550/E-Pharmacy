@@ -1,59 +1,76 @@
-import { PushNotificationsService } from '@/common/pushNotifications.service';
-import { QueryConfig } from '@/common/query-options';
-import { handleError } from '@/database/db.errors';
-import { DBService } from '@/database/db.service';
-import { Notification } from '@/database/entities/notification.entity';
-import { User } from '@/database/entities/user.entity';
-import { LocalizationService } from '@/i18n/localization.service';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { differenceInYears } from 'date-fns';
-import { MulticastMessage } from 'firebase-admin/lib/messaging/messaging-api';
-import { FilterOperator } from 'nestjs-paginate';
-import { DataSource, EntityManager, QueryRunner, Repository } from 'typeorm';
-import { AuthUserDto } from '../auth/dto/auth-user.dto';
+import { AppNotificationService } from './app-notification.service';
+import { SystemNotificationsService } from './system-notification.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import {
-  AppNotificationData,
-  NotificationChannel,
-  NotificationType,
-  RelatedEntityType,
-  SystemNotificationType,
-} from './dto/notification.enum';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
-import { OrderStatusNotification } from './dto/orderStatus-notification.dto';
-import { Order, OrderStatus } from '@/database/entities/order.entity';
-import { OrderAction } from '../orders/dto/order-action.dto';
-import { UUIDObject } from '@/common/decorators/isObjId.decorator';
-
-export const NOTIFICAION_PAGINATION_CONFIG: QueryConfig<Notification> = {
-  sortableColumns: ['metadata.createdAt'],
-  filterableColumns: {
-    recipient_id: [FilterOperator.EQ],
-    type: [FilterOperator.EQ],
-    isRead: [FilterOperator.EQ],
-    'metadata.createdAt': [
-      FilterOperator.GTE,
-      FilterOperator.LTE,
-      FilterOperator.EQ,
-    ],
-  },
-  defaultSortBy: [['metadata.createdAt', 'DESC']],
-};
+import { CreateSystemNotificationsDto } from './dto/create-notification.dto'; // Assuming same DTO or similar interface
+import { EntityManager } from 'typeorm';
 
 @Injectable()
-export class NotificationsService extends DBService<
-  Notification,
-  CreateNotificationDto,
-  UpdateNotificationDto
-> {
+export class NotificationsService {
   constructor(
-    @InjectRepository(Notification)
-    protected repository: Repository<Notification>,
-    private dataSource: DataSource,
-    private readonly i18n: LocalizationService,
-    private pushNotificationsService: PushNotificationsService,
+    private readonly appNotificationService: AppNotificationService,
+    private readonly systemNotificationsService: SystemNotificationsService,
+  ) {}
+
+  // Delegate to AppNotificationService
+  async createAppNotification(
+    createDto: CreateNotificationDto,
+    options?: { manager?: EntityManager },
   ) {
-    super(repository, NOTIFICAION_PAGINATION_CONFIG);
+    return this.appNotificationService.create(createDto, options);
+  }
+
+  // Alias for backward compatibility (DBService behavior)
+  async create(
+    createDto: CreateNotificationDto,
+    options?: { manager?: EntityManager },
+  ) {
+    return this.createAppNotification(createDto, options);
+  }
+
+  // Delegate to SystemNotificationsService
+  async createSystemNotification(
+    createDto: any, // Using any here to match the flexible usage we had, or strict CreateSystemNotificationsDto
+    options?: { manager?: EntityManager },
+  ) {
+    return this.systemNotificationsService.create(createDto, options);
+  }
+
+  // Expose underlying services if needed
+  get app() {
+    return this.appNotificationService;
+  }
+
+  get system() {
+    return this.systemNotificationsService;
+  }
+
+  // Delegate DBService methods to AppNotificationService (default behavior)
+  async findAll(query?: any, qb?: any) {
+    return this.appNotificationService.findAll(query, qb);
+  }
+
+  async findById(id: string) {
+    return this.appNotificationService.findById(id);
+  }
+
+  async find(options: any) {
+    return this.appNotificationService.find(options);
+  }
+
+  async update(id: string, updateDto: any, options?: any) {
+    return this.appNotificationService.update(id, updateDto, options);
+  }
+
+  async remove(id: string) {
+    return this.appNotificationService.remove(id);
+  }
+
+  async delete(id: string, options?: any) {
+    return this.appNotificationService.delete(id, options);
+  }
+
+  async deleteBy(where: any) {
+    return this.appNotificationService.deleteBy(where);
   }
 }

@@ -6,11 +6,22 @@ import { LocalizationModule } from '@/i18n/localization.module';
 import { PushNotificationsModule } from '../push-notifications/push-notifications.module';
 import { OrdersModule } from '../orders/orders.module';
 
+import { SystemNotificationsService } from './system-notification.service';
+import { AppNotificationService } from './app-notification.service';
+
 @Global()
 @Module({
   controllers: [NotificationsController, UserNotificationsController],
-  providers: [NotificationsService],
-  exports: [NotificationsService],
+  providers: [
+    NotificationsService,
+    SystemNotificationsService,
+    AppNotificationService,
+  ],
+  exports: [
+    NotificationsService,
+    SystemNotificationsService,
+    AppNotificationService,
+  ],
   imports: [
     LocalizationModule,
     PushNotificationsModule,

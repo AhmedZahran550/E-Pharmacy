@@ -16,6 +16,7 @@ import { BaseEntity } from './base.entity';
 import { Branch } from './branch.entity';
 import { User } from './user.entity';
 import { OrderHistory } from './order-history.entity';
+import { OrderItem } from './order-item.entity';
 
 export enum OrderType {
   DELIVERY = 'DELIVERY',
@@ -45,23 +46,11 @@ export class Order extends BaseEntity {
   @DecimalColumn()
   totalAmount: number; // Total amount after discount
 
-  @DecimalColumn({ nullable: true })
-  coverageAmount: number; // Total coverage amount
-
   @DecimalColumn()
   subTotal: number; // Total before discount
 
   @DecimalColumn({ nullable: true })
   totalDiscount: number; // Total discount for the order
-
-  @DecimalColumn({ default: 0 })
-  paidAmount: number;
-
-  @DecimalColumn({
-    asExpression: `"total_amount" - "paid_amount"`,
-    generatedType: 'STORED', // Or 'STORED' depending on your DB support and preference
-  })
-  remainingAmount: number;
 
   @Column({
     type: 'enum',
@@ -109,9 +98,12 @@ export class Order extends BaseEntity {
   @OneToMany(() => OrderHistory, (history) => history.order)
   history?: OrderHistory[];
 
+  @OneToMany(() => OrderItem, (item) => item.order)
+  orderItems: OrderItem[];
+
   @Column({
     type: 'boolean',
-    asExpression: `CASE WHEN "status" IN ('COMPLETED', 'CANCELED', 'EXPIRED' ,'REJECTED') THEN FALSE ELSE TRUE END`,
+    asExpression: `CASE WHEN "status" IN ('PICKED_UP', 'DELIVERED', 'CANCELED', 'EXPIRED' ,'REJECTED') THEN FALSE ELSE TRUE END`,
     generatedType: 'STORED',
   })
   isOpen: boolean;

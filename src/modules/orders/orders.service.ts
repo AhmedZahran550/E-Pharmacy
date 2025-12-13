@@ -1,6 +1,7 @@
 import { QueryConfig, QueryOptions } from '@/common/query-options';
 import { DBService } from '@/database/db.service';
 import { Order } from '@/database/entities/order.entity';
+import { OrderItem } from '@/database/entities/order-item.entity';
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -22,6 +23,12 @@ import {
 } from '@/database/entities/order-history.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { SystemNotificationsService } from '../notifications/system-notification.service';
+import {
+  SystemNotificationType,
+  NotificationPriority,
+} from '@/modules/notifications/dto/notification.enum';
+import { NotificationChannel } from '@/database/entities/system-notification.entity';
 
 const ORDERS_PAGINATION_CONFIG: QueryConfig<Order> = {
   sortableColumns: ['metadata.createdAt'],
@@ -72,22 +79,33 @@ export class OrdersService extends DBService<Order> {
     const manager = queryRunner.manager;
     try {
       const { items, branch, type } = createOrderDto;
+
+      let subTotal = items.reduce(
+        (total, item) => total + item.quantity * item.unitPrice,
+        0,
+      );
+      const orderItemsEntities: OrderItem[] = [];
       const savedOrder = await manager.save(Order, {
         user: { id: authUser.id },
         branch: { id: createOrderDto.branch.id },
         type,
         status: OrderStatus.NEW,
-        subTotal: 0,
-        totalAmount: 0,
-        paidAmount: 0,
+        subTotal: subTotal ?? 0,
+        totalAmount: subTotal ?? 0,
       });
-
-      // store items as JSON on the order (items: array of item ids)
+      // Create OrderItem entities first to calculate totals
       if (items && items.length > 0) {
-        savedOrder.items = items;
-        await manager.save(savedOrder);
+        for (const itemDto of items) {
+          const orderItem = new OrderItem();
+          orderItem.item = { id: itemDto.id } as any;
+          orderItem.quantity = itemDto.quantity;
+          orderItem.unitPrice = itemDto.unitPrice;
+          orderItem.totalPrice = itemDto.quantity * itemDto.unitPrice;
+          orderItem.order = savedOrder;
+          orderItemsEntities.push(orderItem);
+        }
+        await manager.save(OrderItem, orderItemsEntities);
       }
-
       // save order image if provided
       if (image) {
         const filePath = `orders/${savedOrder.id}`;
@@ -100,49 +118,26 @@ export class OrdersService extends DBService<Order> {
         await manager.save(savedOrder);
       }
 
-      // create notification for user
-      await this.notificationsService.create(
+      // notify provider/branch via system notification
+      const branchEntity = await this.branchesService.findById(branch.id);
+
+      await this.notificationsService.createSystemNotification(
         {
-          title: 'Order placed',
-          message: `Your order ${savedOrder.orderNo} was created`,
-          recipient: { id: authUser.id },
-          type: NotificationType.PENDING_CONFIRMATION,
-          relatedEntity: { type: RelatedEntityType.ORDER, id: savedOrder.id },
+          title: `New order at ${branchEntity?.localizedName?.en || ''}`,
+          message: `Order ${savedOrder.orderNo} requires your attention`,
+          type: SystemNotificationType.PENDING_CONFIRMATION,
+          priority: NotificationPriority.HIGH,
+          channel: NotificationChannel.PROVIDER_PORTAL,
+          branch: { id: branch.id },
+          provider: branchEntity?.provider
+            ? { id: branchEntity.provider.id }
+            : null,
+          relatedEntityType: RelatedEntityType.ORDER,
+          relatedEntityId: savedOrder.id,
+          isRead: false,
         } as any,
         { manager },
       );
-
-      // notify provider admins for the branch's provider
-      const branchEntity = await this.branchesService.findById(branch.id);
-      if (branchEntity?.provider?.id) {
-        const employees = await this.employeesService.findProviderEmployees(
-          branchEntity.provider.id,
-        );
-        if (employees && (employees as any).data) {
-          for (const emp of (employees as any).data) {
-            try {
-              const user = await this.usersService.findByEmail(emp.email);
-              if (user && user.id) {
-                await this.notificationsService.create(
-                  {
-                    title: `New order at ${branchEntity.localizedName?.en || ''}`,
-                    message: `Order ${savedOrder.orderNo} requires your attention`,
-                    recipient: { id: user.id },
-                    type: NotificationType.PENDING_CONFIRMATION,
-                    relatedEntity: {
-                      type: RelatedEntityType.ORDER,
-                      id: savedOrder.id,
-                    },
-                  } as any,
-                  { manager },
-                );
-              }
-            } catch (e) {
-              // ignore missing user mapping
-            }
-          }
-        }
-      }
       // add order history entry (CREATED)
       await manager.save(OrderHistory, {
         order: { id: savedOrder.id } as any,
