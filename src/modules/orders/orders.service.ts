@@ -125,7 +125,7 @@ export class OrdersService extends DBService<Order> {
         {
           title: `New order at ${branchEntity?.localizedName?.en || ''}`,
           message: `Order ${savedOrder.orderNo} requires your attention`,
-          type: SystemNotificationType.PENDING_CONFIRMATION,
+          type: SystemNotificationType.NEW_ORDER,
           priority: NotificationPriority.HIGH,
           channel: NotificationChannel.PROVIDER_PORTAL,
           branch: { id: branch.id },

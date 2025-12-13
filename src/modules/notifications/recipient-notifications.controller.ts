@@ -26,12 +26,12 @@ export class UserNotificationsController {
     @AuthUser() user: AuthUserDto,
   ) {
     query.filter = { ...query.filter, recipient_id: `$eq:${user.id}` };
-    return await this.notificationsService.findAll(query);
+    return await this.notificationsService.app.findAll(query);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
-    return this.notificationsService.find({
+    return this.notificationsService.app.find({
       where: { id, recipient: { id: user.id } },
     });
   }
@@ -39,14 +39,16 @@ export class UserNotificationsController {
   @Delete(':id')
   async delete(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
     console.log('Deleting notification with id:', id, 'for user:', user.id);
-    return this.notificationsService.delete(id, {
+    return this.notificationsService.app.delete(id, {
       where: { recipient: { id: user.id } },
     });
   }
 
   @Delete()
   async deleteAll(@AuthUser() user: AuthUserDto) {
-    return this.notificationsService.deleteBy({ recipient: { id: user.id } });
+    return this.notificationsService.app.deleteBy({
+      recipient: { id: user.id },
+    });
   }
 
   @Patch(':id')
@@ -55,7 +57,7 @@ export class UserNotificationsController {
     @Body() updateNotificationDto: UpdateNotificationDto,
     @AuthUser() user: AuthUserDto,
   ) {
-    return this.notificationsService.update(id, updateNotificationDto, {
+    return this.notificationsService.app.update(id, updateNotificationDto, {
       where: {
         recipient: { id: user.id },
       },

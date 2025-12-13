@@ -18,17 +18,19 @@ export class NotificationsController {
 
   @Post()
   create(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationsService.create(createNotificationDto);
+    return this.notificationsService.createAppNotification(
+      createNotificationDto,
+    );
   }
 
   @Get()
   findAll(@Paginate() query: QueryOptions) {
-    return this.notificationsService.findAll(query);
+    return this.notificationsService.app.findAll(query);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.notificationsService.findById(id);
+    return this.notificationsService.app.findById(id);
   }
 
   @Patch(':id')
@@ -36,11 +38,11 @@ export class NotificationsController {
     @Param('id') id: string,
     @Body() updateNotificationDto: UpdateNotificationDto,
   ) {
-    return this.notificationsService.update(id, updateNotificationDto);
+    return this.notificationsService.app.update(id, updateNotificationDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.notificationsService.remove(id);
+    return this.notificationsService.app.remove(id);
   }
 }
