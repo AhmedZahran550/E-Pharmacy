@@ -43,11 +43,8 @@ export class Order extends BaseEntity {
   @DateColumn({ nullable: true })
   finalizedDate: Date; // Set when the order is either completed, expired or canceled
 
-  @DecimalColumn()
+  @DecimalColumn({ nullable: true })
   totalAmount: number; // Total amount after discount
-
-  @DecimalColumn()
-  subTotal: number; // Total before discount
 
   @DecimalColumn({ nullable: true })
   totalDiscount: number; // Total discount for the order

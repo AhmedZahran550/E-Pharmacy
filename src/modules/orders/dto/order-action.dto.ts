@@ -1,5 +1,4 @@
-import { IsUUIDObj, UUIDObject } from '@/common/decorators/isObjId.decorator';
-import { IsEnum, IsOptional, IsString, ValidateIf } from 'class-validator';
+import { IsEnum, IsString, ValidateIf } from 'class-validator';
 
 export enum OrderAction {
   CONFIRM = 'CONFIRM',

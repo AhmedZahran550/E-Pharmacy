@@ -80,18 +80,12 @@ export class OrdersService extends DBService<Order> {
     try {
       const { items, branch, type } = createOrderDto;
 
-      let subTotal = items.reduce(
-        (total, item) => total + item.quantity * item.unitPrice,
-        0,
-      );
       const orderItemsEntities: OrderItem[] = [];
       const savedOrder = await manager.save(Order, {
         user: { id: authUser.id },
         branch: { id: createOrderDto.branch.id },
         type,
         status: OrderStatus.NEW,
-        subTotal: subTotal ?? 0,
-        totalAmount: subTotal ?? 0,
       });
       // Create OrderItem entities first to calculate totals
       if (items && items.length > 0) {
@@ -99,8 +93,6 @@ export class OrdersService extends DBService<Order> {
           const orderItem = new OrderItem();
           orderItem.item = { id: itemDto.id } as any;
           orderItem.quantity = itemDto.quantity;
-          orderItem.unitPrice = itemDto.unitPrice;
-          orderItem.totalPrice = itemDto.quantity * itemDto.unitPrice;
           orderItem.order = savedOrder;
           orderItemsEntities.push(orderItem);
         }
