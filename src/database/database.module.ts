@@ -17,6 +17,7 @@ import { OrderHistory } from './entities/order-history.entity';
 import { Provider } from './entities/provider.entity';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { DeviceToken } from './entities/device-token.entity';
+import { SystemNotification } from './entities/system-notification.entity';
 
 @Global()
 @Module({
@@ -40,6 +41,7 @@ import { DeviceToken } from './entities/device-token.entity';
       OrderItem,
       OrderHistory,
       Notification,
+      SystemNotification,
       ActivityLog,
       City,
       Governorate,

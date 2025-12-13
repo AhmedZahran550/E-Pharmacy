@@ -123,8 +123,12 @@ export class OrdersService extends DBService<Order> {
 
       await this.notificationsService.createSystemNotification(
         {
-          title: `New order at ${branchEntity?.localizedName?.en || ''}`,
-          message: `Order ${savedOrder.orderNo} requires your attention`,
+          title: this.i18n.translate('notifications.NEW_ORDER.title'),
+          message: this.i18n.translate('notifications.NEW_ORDER.body', {
+            args: {
+              orderNo: savedOrder.orderNo,
+            },
+          }),
           type: SystemNotificationType.NEW_ORDER,
           priority: NotificationPriority.HIGH,
           channel: NotificationChannel.PROVIDER_PORTAL,
