@@ -60,6 +60,11 @@ export class OrdersController {
     return this.ordersService.findOrderDetails(id, user.id);
   }
 
+  @Get(':id/history')
+  async findOneHistory(@AuthUser() user: AuthUserDto, @Param('id') id: string) {
+    return this.ordersService.findOrderHistory(id, user.id);
+  }
+
   @Patch(':id')
   async updateOrder(
     @Param('id') id: string,

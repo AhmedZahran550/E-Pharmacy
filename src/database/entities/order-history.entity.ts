@@ -39,8 +39,8 @@ export class OrderHistory extends BaseEntity<OrderHistory> {
   changeType: ChangeType;
 
   @Column({ type: 'jsonb', nullable: true })
-  previous?: OrderHistoryStatus;
+  from?: OrderHistoryStatus;
 
   @Column({ type: 'jsonb', nullable: true })
-  current?: OrderHistoryStatus;
+  to?: OrderHistoryStatus;
 }

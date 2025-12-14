@@ -214,6 +214,16 @@ export class OrdersService extends DBService<Order> {
       await queryRunner.release();
     }
   }
+  async findOrderHistory(orderId: string, userId: string) {
+    const qb = this.dataSource
+      .getRepository(OrderHistory)
+      .createQueryBuilder('orderHistory')
+      .leftJoin('orderHistory.order', 'order')
+      .where('order.id = :orderId', { orderId })
+      .andWhere('order.user_id = :userId', { userId })
+      .orderBy('orderHistory.metadata.createdAt', 'DESC');
+    return qb.getMany();
+  }
 
   private async createOrderItems(
     order: Order,
