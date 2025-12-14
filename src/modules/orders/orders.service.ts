@@ -3,10 +3,14 @@ import { DBService } from '@/database/db.service';
 import { Order } from '@/database/entities/order.entity';
 import { OrderItem } from '@/database/entities/order-item.entity';
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FilterOperator } from 'nestjs-paginate';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { StorageService } from '@/common/storage.service';
 import { EmployeesService } from '../employees/employees.service';
 import { UsersService } from '../users/users.service';
@@ -20,15 +24,19 @@ import { OrderStatus } from '@/database/entities/order.entity';
 import {
   OrderHistory,
   ActorType,
+  ChangeType,
 } from '@/database/entities/order-history.entity';
 import { NotificationsService } from '../notifications/notifications.service';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateOrderDto, CreateOrderItemDto } from './dto/create-order.dto';
 import { SystemNotificationsService } from '../notifications/system-notification.service';
 import {
   SystemNotificationType,
   NotificationPriority,
 } from '@/modules/notifications/dto/notification.enum';
 import { NotificationChannel } from '@/database/entities/system-notification.entity';
+import { AuthUserDto } from '../auth/dto/auth-user.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { Item } from '@/database/entities/item.entity';
 
 const ORDERS_PAGINATION_CONFIG: QueryConfig<Order> = {
   sortableColumns: ['metadata.createdAt'],
@@ -63,56 +71,32 @@ export class OrdersService extends DBService<Order> {
     private notificationsService: NotificationsService,
     private readonly i18n: LocalizationService,
     private storageService: StorageService,
-    private employeesService: EmployeesService,
-    private usersService: UsersService,
-    private branchesService: BranchesService,
   ) {
     super(repository, ORDERS_PAGINATION_CONFIG);
   }
 
-  async createOrder(
-    createOrderDto: CreateOrderDto,
-    image: Express.Multer.File,
-    authUser: any,
-  ) {
+  async createOrder(createOrderDto: CreateOrderDto, authUser: AuthUserDto) {
     const queryRunner = await this.startTransaction(this.dataSource);
     const manager = queryRunner.manager;
     try {
-      const { items, branch, type } = createOrderDto;
+      const { items, type, branch } = createOrderDto;
 
-      const orderItemsEntities: OrderItem[] = [];
-      const savedOrder = await manager.save(Order, {
+      let orderItemsEntities: OrderItem[] = [];
+      const orderInstance = manager.create(Order, {
         user: { id: authUser.id },
-        branch: { id: createOrderDto.branch.id },
+        branch: { id: branch.id },
         type,
         status: OrderStatus.NEW,
       });
+      const savedOrder = await manager.save(orderInstance);
       // Create OrderItem entities first to calculate totals
-      if (items && items.length > 0) {
-        for (const itemDto of items) {
-          const orderItem = new OrderItem();
-          orderItem.item = { id: itemDto.id } as any;
-          orderItem.quantity = itemDto.quantity;
-          orderItem.order = savedOrder;
-          orderItemsEntities.push(orderItem);
-        }
-        await manager.save(OrderItem, orderItemsEntities);
-      }
-      // save order image if provided
-      if (image) {
-        const filePath = `orders/${savedOrder.id}`;
-        const obj = await this.storageService.saveFile(
-          image,
-          filePath,
-          'orders',
+      if (items && items?.length > 0) {
+        orderItemsEntities = await this.createOrderItems(
+          savedOrder,
+          manager,
+          items,
         );
-        savedOrder.imageUrl = obj.url;
-        await manager.save(savedOrder);
       }
-
-      // notify provider/branch via system notification
-      const branchEntity = await this.branchesService.findById(branch.id);
-
       await this.notificationsService.createSystemNotification(
         {
           title: this.i18n.translate('notifications.NEW_ORDER.title'),
@@ -125,9 +109,6 @@ export class OrdersService extends DBService<Order> {
           priority: NotificationPriority.HIGH,
           channel: NotificationChannel.PROVIDER_PORTAL,
           branch: { id: branch.id },
-          provider: branchEntity?.provider
-            ? { id: branchEntity.provider.id }
-            : null,
           relatedEntityType: RelatedEntityType.ORDER,
           relatedEntityId: savedOrder.id,
           isRead: false,
@@ -139,15 +120,14 @@ export class OrdersService extends DBService<Order> {
         order: { id: savedOrder.id } as any,
         actorType: ActorType.USER,
         actorId: authUser.id,
-        actorName: (authUser?.fullName || authUser?.username) as any,
-        changeType: 'CREATED',
+        actorName: authUser.firstName + ' ' + authUser.lastName,
+        changeType: ChangeType.CREATED,
         previous: null,
         current: {
           status: savedOrder.status,
-          items: savedOrder.items,
           imageUrl: savedOrder.imageUrl,
         },
-      } as any);
+      });
 
       await queryRunner.commitTransaction();
       return savedOrder;
@@ -157,6 +137,24 @@ export class OrdersService extends DBService<Order> {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async updateOrderImage(
+    orderId: string,
+    image: Express.Multer.File,
+    user: AuthUserDto,
+  ) {
+    const order = await this.findOneOrFail({
+      where: { id: orderId, user: { id: user.id } },
+    });
+    const imageUrl = await this.storageService.saveFile(
+      image,
+      `${order.id}`,
+      'orders',
+    );
+    order.imageUrl = imageUrl.url;
+    await this.repository.save(order);
+    return order;
   }
 
   async findUserOrders(userId: string, query?: QueryOptions) {
@@ -176,29 +174,70 @@ export class OrdersService extends DBService<Order> {
     return order;
   }
 
-  async updateStatus(orderId: string, status: string, userId: string) {
-    const order = await this.repository.findOne({
-      where: { id: orderId, user: { id: userId } } as any,
-    });
-    if (!order) throw new NotFoundException('Order not found');
-    const previousStatus = order.status;
-    order.status = status as any;
-    const saved = await this.repository.save(order);
-
-    // record history for status change
+  async updateOrder(
+    orderId: string,
+    updateOrderDto: UpdateOrderDto,
+    userId: string,
+  ) {
+    const queryRunner = await this.startTransaction(this.dataSource);
+    const manager = queryRunner.manager;
     try {
-      await this.dataSource.getRepository(OrderHistory).save({
-        order: { id: order.id } as any,
-        actorType: ActorType.USER,
-        actorId: userId,
-        changeType: 'STATUS_UPDATED',
-        previous: { status: previousStatus },
-        current: { status },
-      } as any);
-    } catch (e) {
-      // ignore history save errors to not block main flow
+      const order = await this.repository.findOne({
+        where: { id: orderId, user: { id: userId } } as any,
+      });
+      if (!order) throw new NotFoundException('Order not found');
+      const updatedOrder = this.repository.merge(order, updateOrderDto);
+      const saved = await this.repository.save(updatedOrder);
+      if (updateOrderDto?.items?.length > 0) {
+        await this.createOrderItems(saved, manager, updateOrderDto.items);
+      }
+      // record history for status change
+      try {
+        await this.dataSource.getRepository(OrderHistory).save({
+          order: { id: order.id } as any,
+          actorType: ActorType.USER,
+          actorId: userId,
+          actorName: order.user.firstName + ' ' + order.user.lastName,
+          changeType: ChangeType.UPDATED,
+          previous: { status: order.status },
+          current: { status: updateOrderDto.status },
+        } as any);
+      } catch (e) {
+        // ignore history save errors to not block main flow
+      }
+      await queryRunner.commitTransaction();
+      return saved;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
+  }
 
-    return saved;
+  private async createOrderItems(
+    order: Order,
+    manager: EntityManager,
+    items: CreateOrderItemDto[],
+  ) {
+    const existingItems = await manager.find(Item, {
+      where: { id: In(items.map((item) => item.id)) } as any,
+    });
+    if (existingItems.length !== items.length) {
+      throw new NotFoundException({
+        message: 'Some items not found',
+        code: 'ITEM_NOT_FOUND',
+      });
+    }
+    await manager.delete(OrderItem, { order: { id: order.id } });
+    const orderItemsEntities: OrderItem[] = [];
+    for (const itemDto of items) {
+      const orderItem = new OrderItem();
+      orderItem.item = { id: itemDto.id } as any;
+      orderItem.quantity = itemDto.quantity;
+      orderItem.order = order;
+      orderItemsEntities.push(orderItem);
+    }
+    return await manager.save(orderItemsEntities);
   }
 }

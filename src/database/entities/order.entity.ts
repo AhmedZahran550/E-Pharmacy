@@ -39,6 +39,9 @@ export enum OrderStatus {
 @Index('ORDER_USER_IDX', ['user'])
 @Index('ORDER_BRANCH_IDX', ['branch'])
 @Check(`(status <> 'REJECTED' OR rejection_reason IS NOT NULL)`)
+@Check(
+  `(status IN ('NEW', 'CANCELED', 'REJECTED', 'EXPIRED') OR total_amount IS NOT NULL)`,
+)
 export class Order extends BaseEntity {
   @DateColumn({ nullable: true })
   finalizedDate: Date; // Set when the order is either completed, expired or canceled
@@ -77,9 +80,6 @@ export class Order extends BaseEntity {
   @Column({ nullable: true })
   imageUrl?: string;
 
-  @Column({ type: 'jsonb', nullable: true })
-  items?: any[];
-
   @ManyToOne(() => User, {
     onDelete: 'CASCADE',
   })
@@ -95,7 +95,10 @@ export class Order extends BaseEntity {
   @OneToMany(() => OrderHistory, (history) => history.order)
   history?: OrderHistory[];
 
-  @OneToMany(() => OrderItem, (item) => item.order)
+  @OneToMany(() => OrderItem, (item) => item.order, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   orderItems: OrderItem[];
 
   @Column({

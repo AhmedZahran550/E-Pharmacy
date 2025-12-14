@@ -20,25 +20,34 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiQuery } from '@/common/decorators/pagination-query.decorator';
 import { Paginate } from 'nestjs-paginate';
 import { QueryOptions } from '@/common/query-options';
+import { FileRequiredPipe } from '@/common/pipes/file-required.pipe';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @ApiTags('Orders')
+@Roles(Role.USER, Role.APP_USER)
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  @Roles(Role.USER, Role.APP_USER)
-  @UseInterceptors(FileInterceptor('image', imageInterceptorOptions))
   async createOrder(
     @AuthUser() user: AuthUserDto,
-    @UploadedFile() image: Express.Multer.File,
     @Body() body: CreateOrderDto,
   ) {
-    return this.ordersService.createOrder(body, image, user);
+    return this.ordersService.createOrder(body, user);
+  }
+
+  @Patch(':id/image')
+  @UseInterceptors(FileInterceptor('image', imageInterceptorOptions))
+  async updateOrderImage(
+    @AuthUser() user: AuthUserDto,
+    @UploadedFile(FileRequiredPipe) image: Express.Multer.File,
+    @Param('id') id: string,
+  ) {
+    return this.ordersService.updateOrderImage(id, image, user);
   }
 
   @Get()
-  @Roles(Role.USER, Role.APP_USER)
   async findAll(
     @AuthUser() user: AuthUserDto,
     @Paginate() query: QueryOptions,
@@ -47,18 +56,16 @@ export class OrdersController {
   }
 
   @Get(':id')
-  @Roles(Role.USER, Role.APP_USER)
   async findOne(@AuthUser() user: AuthUserDto, @Param('id') id: string) {
     return this.ordersService.findOrderDetails(id, user.id);
   }
 
   @Patch(':id')
-  @Roles(Role.USER, Role.APP_USER)
   async updateOrder(
     @Param('id') id: string,
-    @Body() body: { status: string },
+    @Body() body: UpdateOrderDto,
     @AuthUser() user: AuthUserDto,
   ) {
-    return this.ordersService.updateStatus(id, body.status, user.id);
+    return this.ordersService.updateOrder(id, body, user.id);
   }
 }

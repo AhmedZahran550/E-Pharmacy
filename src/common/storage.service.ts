@@ -42,7 +42,7 @@ export class StorageService {
         {
           public_id: filePath.replace(/\.[^/.]+$/, ''), // Remove extension, let Cloudinary handle it or keep it
           resource_type: 'auto',
-          folder, // Map bucketName to folder if desired, or skip
+          folder: 'Pharmacy/' + folder, // Map bucketName to folder if desired, or skip
         },
         (error, result) => {
           if (error) {

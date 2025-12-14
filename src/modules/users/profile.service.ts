@@ -64,11 +64,7 @@ export class ProfileService {
       const fileName = `profile-${userId}-${uuid}`;
       const extension = path.extname(file.originalname).toLowerCase();
       const filePath = `${fileName}${extension}`;
-      const obj = await this.storageService.saveFile(
-        file,
-        filePath,
-        'Pharmacy/uploads/profile',
-      );
+      const obj = await this.storageService.saveFile(file, filePath, 'profile');
       const updatedUser =
         await this.usersService.repository.manager.transaction(
           async (manager) => {

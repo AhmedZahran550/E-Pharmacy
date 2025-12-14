@@ -9,6 +9,17 @@ export enum ActorType {
   SYSTEM = 'SYSTEM',
 }
 
+export enum ChangeType {
+  CREATED = 'CREATED',
+  UPDATED = 'UPDATED',
+  DELETED = 'DELETED',
+}
+
+export class OrderHistoryStatus {
+  status: string;
+  imageUrl: string;
+}
+
 @Entity({ name: 'order_history' })
 export class OrderHistory extends BaseEntity<OrderHistory> {
   @ManyToOne(() => Order, (order) => order.history, { onDelete: 'CASCADE' })
@@ -24,12 +35,12 @@ export class OrderHistory extends BaseEntity<OrderHistory> {
   @Column({ nullable: true })
   actorName?: string;
 
-  @Column()
-  changeType: string;
+  @Column({ type: 'enum', enum: ChangeType })
+  changeType: ChangeType;
 
   @Column({ type: 'jsonb', nullable: true })
-  previous?: any;
+  previous?: OrderHistoryStatus;
 
   @Column({ type: 'jsonb', nullable: true })
-  current?: any;
+  current?: OrderHistoryStatus;
 }
