@@ -10,7 +10,10 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
@@ -71,6 +74,55 @@ export class AuthController {
   @Get('policies/subject')
   async getPoliciesSubjects() {
     return Object.values(Subject);
+  }
+
+  // Google OAuth endpoints
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {
+    // Initiates Google OAuth flow - handled by GoogleStrategy
+    // This endpoint will redirect to Google's consent screen
+  }
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthCallback(@Req() req: any) {
+    // Google strategy validates and returns user profile
+    return await this.authService.validateGoogleUser(req.user);
+  }
+
+  // Facebook OAuth endpoints
+  @Public()
+  @Get('facebook')
+  @UseGuards(AuthGuard('facebook'))
+  async facebookAuth() {
+    // Initiates Facebook OAuth flow - handled by FacebookStrategy
+  }
+
+  @Public()
+  @Get('facebook/callback')
+  @UseGuards(AuthGuard('facebook'))
+  async facebookAuthCallback(@Req() req: any) {
+    // Facebook strategy validates and returns user profile
+    return await this.authService.validateFacebookUser(req.user);
+  }
+
+  // Apple Sign In endpoints
+  @Public()
+  @Post('apple')
+  @UseGuards(AuthGuard('apple'))
+  async appleAuth() {
+    // Initiates Apple Sign In flow - handled by AppleStrategy
+  }
+
+  @Public()
+  @Post('apple/callback')
+  @UseGuards(AuthGuard('apple'))
+  async appleAuthCallback(@Req() req: any) {
+    // Apple strategy validates and returns user profile
+    return await this.authService.validateAppleUser(req.user);
   }
 
   @Post('logout')

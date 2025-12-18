@@ -39,6 +39,13 @@ export enum Relationship {
   PARENT = 'parent',
 }
 
+export enum AuthProvider {
+  LOCAL = 'local',
+  GOOGLE = 'google',
+  FACEBOOK = 'facebook',
+  APPLE = 'apple',
+}
+
 export interface UserPreferences {
   language: string;
   notificationsEnabled: boolean;
@@ -65,6 +72,22 @@ export interface UserPreferences {
 export class User extends BaseEntity {
   @Column({ nullable: true })
   email?: string;
+
+  @Column({
+    type: 'enum',
+    enum: AuthProvider,
+    default: AuthProvider.LOCAL,
+  })
+  provider: AuthProvider;
+
+  @Column({ name: 'google_id', nullable: true, unique: true })
+  googleId?: string;
+
+  @Column({ name: 'facebook_id', nullable: true, unique: true })
+  facebookId?: string;
+
+  @Column({ name: 'apple_id', nullable: true, unique: true })
+  appleId?: string;
 
   @DateColumn()
   birthDate: Date;
@@ -147,8 +170,8 @@ export class User extends BaseEntity {
   disabled?: boolean;
 
   @Exclude()
-  @Column({ select: false })
-  password: string;
+  @Column({ select: false, nullable: true })
+  password?: string;
 
   @Column({
     type: 'enum',

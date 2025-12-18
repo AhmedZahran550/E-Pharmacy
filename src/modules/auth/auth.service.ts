@@ -2,7 +2,7 @@ import constants from '@/common/constants';
 import { ErrorCodes } from '@/common/error-codes';
 import { FieldError } from '@/common/models/error-response';
 import { handleError } from '@/database/db.errors';
-import { User } from '@/database/entities/user.entity';
+import { AuthProvider, User } from '@/database/entities/user.entity';
 import { LocalizationService } from '@/i18n/localization.service';
 import { IdentityConfirmationDto } from '@/modules/auth/dto/identity-confirmation.dto';
 import {
@@ -38,6 +38,9 @@ import { logger } from 'nestjs-i18n';
 import { EmailService } from './../../common/mailer/email.service';
 import { actionMap, Policy } from './policies.types';
 import { hmacHashing } from '@/common/hmac-hashing';
+import { GoogleProfile } from './strategies/google.strategy';
+import { FacebookProfile } from './strategies/facebook.strategy';
+import { AppleProfile } from './strategies/apple.strategy';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -534,6 +537,120 @@ export class AuthService {
         message: 'Invalid token',
         code: ErrorCodes.INVALID_TOKEN,
       });
+    }
+  }
+
+  /**
+   * Validates Google OAuth user and returns auth response
+   */
+  async validateGoogleUser(profile: GoogleProfile) {
+    return this.findOrCreateSocialUser({
+      provider: AuthProvider.GOOGLE,
+      providerId: profile.id,
+      email: profile.email,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      photoUrl: profile.photo,
+    });
+  }
+
+  /**
+   * Validates Facebook OAuth user and returns auth response
+   */
+  async validateFacebookUser(profile: FacebookProfile) {
+    return this.findOrCreateSocialUser({
+      provider: AuthProvider.FACEBOOK,
+      providerId: profile.id,
+      email: profile.email,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      photoUrl: profile.photo,
+    });
+  }
+
+  /**
+   * Validates Apple Sign In user and returns auth response
+   */
+  async validateAppleUser(profile: AppleProfile) {
+    return this.findOrCreateSocialUser({
+      provider: AuthProvider.APPLE,
+      providerId: profile.id,
+      email: profile.email,
+      firstName: profile.firstName || 'User',
+      lastName: profile.lastName || '',
+    });
+  }
+
+  /**
+   * Finds existing user by provider ID or email, or creates a new user
+   */
+  private async findOrCreateSocialUser(data: {
+    provider: AuthProvider;
+    providerId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    photoUrl?: string;
+  }) {
+    try {
+      const { provider, providerId, email, firstName, lastName, photoUrl } =
+        data;
+      let user: User;
+
+      // Define the provider ID field based on the provider
+      const providerIdField =
+        provider === AuthProvider.GOOGLE
+          ? 'googleId'
+          : provider === AuthProvider.FACEBOOK
+            ? 'facebookId'
+            : 'appleId';
+
+      // Try to find user by provider ID
+      user = await this.usersService.findOne({
+        where: { [providerIdField]: providerId },
+      });
+
+      // If not found by provider ID, try to find by email
+      if (!user && email) {
+        user = await this.usersService.findOne({
+          where: { email, emailVerified: true },
+        });
+
+        // If user exists with this email, link the social account
+        if (user) {
+          user[providerIdField] = providerId;
+          if (!user.photoUrl && photoUrl) {
+            user.photoUrl = photoUrl;
+          }
+          await this.usersService.update(user.id, user);
+        }
+      }
+
+      // If user still doesn't exist, create a new one
+      if (!user) {
+        const newUserData: any = {
+          email,
+          firstName,
+          lastName,
+          provider,
+          [providerIdField]: providerId,
+          emailVerified: !!email, // Auto-verify email from OAuth provider
+          roles: [Role.USER, Role.APP_USER],
+          photoUrl,
+          // Required fields - set defaults
+          birthDate: sub(new Date(), { years: 15 }), // Default to 15 years ago
+          gender: 'male', // Default gender
+        };
+
+        user = await this.usersService.create(newUserData);
+      }
+
+      // Generate tokens and return auth response
+      const authResponse = await this.getAuthResponse(user);
+      return authResponse;
+    } catch (error) {
+      this.logger.error('Social login error:', error);
+      handleError(error);
     }
   }
 

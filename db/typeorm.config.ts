@@ -19,6 +19,6 @@ export default new DataSource({
   logging: process.env.DB_LOGGING === 'true',
   entities: [__dirname + '/../src/database/entities/*.entity{.ts,.js}'],
   namingStrategy: new CustomNamingStrategy(),
-  migrations: [__dirname + '/../src/database/migrations/*{.ts,.js}'],
+  migrations: [__dirname + '/migrations/*{.ts,.js}'],
   ssl: process.env.DB_SSL === 'true',
 } as DataSourceOptions);
