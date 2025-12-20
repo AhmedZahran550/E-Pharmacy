@@ -183,6 +183,7 @@ export class UsersService extends DBService<
         },
       });
       const SavedUser = await manager.save(User, userToSave);
+      delete SavedUser.password;
       return SavedUser;
     } catch (error) {
       handleError(error);
