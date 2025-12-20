@@ -33,6 +33,7 @@ import { VerifyUserIdDto } from './dto/VerifyUserIdDto.dto';
 import { ErrorCodes } from '@/common/error-codes';
 import { UserActionDto, UserActionType } from './dto/user-action.dto';
 import { hmacHashing, hmacVerify } from '@/common/hmac-hashing';
+import { MedicalProfileService } from './medical-profile.service';
 
 export const USER_PAGINATION_CONFIG: QueryConfig<User> = {
   sortableColumns: ['email', 'firstName', 'lastName', 'mobile', 'code'],
@@ -76,6 +77,7 @@ export class UsersService extends DBService<
     @InjectRepository(User)
     public repository: Repository<User>,
     private dataSource: DataSource,
+    private medicalProfileService: MedicalProfileService,
   ) {
     super(repository, USER_PAGINATION_CONFIG);
   }
@@ -138,6 +140,12 @@ export class UsersService extends DBService<
       const user = manager.create(User, createDto);
       // user.metadata.createdBy = createDto.createdBy;
       const savedUser = await this.saveUser(user, createDto.createdBy, manager);
+      // Auto-create medical profile
+      await this.medicalProfileService.createInitialProfile(
+        savedUser.id,
+        manager,
+      );
+
       await queryRunner.commitTransaction();
       return savedUser;
     } catch (error) {

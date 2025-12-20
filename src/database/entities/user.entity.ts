@@ -10,6 +10,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { DateColumn } from '../../common/decorators/date-column.decorator';
 import { Role } from '../../modules/auth/role.model';
@@ -22,6 +23,7 @@ import { DeviceToken } from './device-token.entity';
 import { encrypt } from '@/common/crypto';
 import { Exclude } from 'class-transformer';
 import { hmacHashing } from '@/common/hmac-hashing';
+import { MedicalProfile } from './medical-profile.entity';
 
 export const USER_EMAIL_IDX = 'user_email_idx';
 export const USER_MOBILE_IDX = 'user_mobile_idx';
@@ -257,6 +259,20 @@ export class User extends BaseEntity {
     update: false,
   })
   isProfileCompleted: boolean;
+
+  @OneToOne(() => MedicalProfile, (medicalProfile) => medicalProfile.user, {
+    nullable: true,
+  })
+  medicalProfile?: MedicalProfile;
+
+  @Column({
+    type: 'boolean',
+    asExpression: `EXISTS(SELECT 1 FROM medical_profile WHERE user_id = "user"."id" AND deleted_at IS NULL)`,
+    generatedType: 'STORED',
+    insert: false,
+    update: false,
+  })
+  hasMedicalProfile: boolean;
 
   @BeforeInsert()
   @BeforeUpdate()

@@ -22,6 +22,9 @@ import { ErrorCodes } from '@/common/error-codes';
 import { validateEgyptianNationalId } from '@/common/nid-util';
 import { isSameDay } from 'date-fns';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
+import { MedicalProfile } from '@/database/entities/medical-profile.entity';
+import { CreateMedicalProfileDto } from './dto/create-medical-profile.dto';
+import { UpdateMedicalProfileDto } from './dto/update-medical-profile.dto';
 
 @Injectable()
 export class ProfileService {
@@ -29,6 +32,8 @@ export class ProfileService {
     private storageService: StorageService,
     private usersService: UsersService,
     private orderService: OrdersService,
+    @InjectRepository(MedicalProfile)
+    private medicalProfileRepository: Repository<MedicalProfile>,
   ) {}
 
   async updateUserPreferences(

@@ -313,9 +313,6 @@ export class AuthService {
 
   private async getAuthResponse(user: User) {
     this.verifyUserAccess(user);
-    if (!user.mobileVerified) {
-      user.mobileVerified = true;
-    }
     user.lastLoginDate = new Date();
     await this.usersService.update(user.id, user);
     const payload: TokenPayload = {
