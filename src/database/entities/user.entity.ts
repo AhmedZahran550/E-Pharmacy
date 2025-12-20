@@ -267,12 +267,9 @@ export class User extends BaseEntity {
 
   @Column({
     type: 'boolean',
-    asExpression: `EXISTS(SELECT 1 FROM medical_profile WHERE user_id = "user"."id" AND deleted_at IS NULL)`,
-    generatedType: 'STORED',
-    insert: false,
-    update: false,
+    default: false,
   })
-  hasMedicalProfile: boolean;
+  isMedicalProfileCompleted: boolean;
 
   @BeforeInsert()
   @BeforeUpdate()
