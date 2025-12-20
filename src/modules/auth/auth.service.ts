@@ -103,9 +103,18 @@ export class AuthService {
       await this.checkUserExists(signUpDto);
       const newUser = await this.usersService.create(signUpDto);
       if (newUser.email && !newUser.emailVerified) {
-        await this.sendEmailVerification(newUser);
+        this.sendEmailVerification(newUser).catch((err) =>
+          this.logger.error(
+            `Failed to send verification email for user ${newUser.id}`,
+            err,
+          ),
+        );
       }
-      const otp = await this.otpService.sendOtp(newUser);
+      this.otpService
+        .sendOtp(newUser)
+        .catch((err) =>
+          this.logger.error(`Failed to send OTP for user ${newUser.id}`, err),
+        );
       const user = new AuthUserDto(newUser);
       // const tokens = await this.generateToken(user);
       return { user };
