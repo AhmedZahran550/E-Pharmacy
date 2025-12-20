@@ -46,7 +46,7 @@ export class ProfileController {
     @UploadedFile(FileRequiredPipe) file: Express.Multer.File,
     @AuthUser() user: AuthUserDto,
   ) {
-    await this.profileService.updateProfilePhoto(file, user.id);
+    return await this.profileService.updateProfilePhoto(file, user.id);
   }
 
   @Delete()

@@ -77,7 +77,7 @@ export class ProfileService {
             return savedUser;
           },
         );
-      return updatedUser;
+      return { photoUrl: updatedUser.photoUrl };
     } catch (error) {
       console.error(error);
       throw error;

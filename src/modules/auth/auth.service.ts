@@ -412,7 +412,19 @@ export class AuthService {
     return employee;
   }
   private async verifyUserPassword(dto: CredentialsDto, user: User) {
-    console.log(dto.password, user.password);
+    if (!user.password) {
+      let provider = user.provider;
+      throw new UnauthorizedException({
+        message: this.i18n.t('errors.SOCIAL_LOGIN_NO_PASSWORD', {
+          args: { provider },
+        }),
+        code: ErrorCodes.SOCIAL_LOGIN_NO_PASSWORD,
+        args: {
+          provider,
+        },
+      });
+    }
+
     const matched = await argon.verify(user.password, dto.password);
     if (!matched) {
       throw new UnauthorizedException({
@@ -519,6 +531,7 @@ export class AuthService {
       await this.emailService.sendWelcomeEmail(user.email, token);
     } catch (error) {
       console.log(error);
+      throw error;
     }
   }
   async verifyEmail(token: string) {

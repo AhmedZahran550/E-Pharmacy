@@ -14,8 +14,6 @@ export class DBExceptionFilter implements ExceptionFilter {
   constructor() {}
 
   catch(exception: unknown) {
-    console.log(exception);
-
     if (exception instanceof QueryFailedError) {
       const code = (exception as any).code;
       if (!code) {

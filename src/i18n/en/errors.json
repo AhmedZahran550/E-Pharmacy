@@ -105,5 +105,7 @@
   "MOBILE_NOT_WHITELISTED": "We apologize, it seems this number is not authorized for access. Access is currently available for specific phone numbers only.",
   "ACTIVE_SUBSCRIPTION_EXISTS": "An active subscription already exists for this user.",
   "TICKET_ALREADY_RESOLVED": "Cannot update or send messages on a resolved ticket.",
-  "NID_DOB_INCONSISTENCY": "The National ID and Date of Birth are not consistent with each other. Please review both fields. "
+  "NID_DOB_INCONSISTENCY": "The National ID and Date of Birth are not consistent with each other. Please review both fields. ",
+  "SOCIAL_LOGIN_NO_PASSWORD": "This account was created using {provider} login. Please sign in with {provider} or use 'Forgot Password' to set a password.",
+  "EMAIL_ALREADY_EXIST": "Email already exists."
 }

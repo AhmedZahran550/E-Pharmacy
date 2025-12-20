@@ -30,7 +30,6 @@ export class GeneralExceptionFilter implements ExceptionFilter {
       'Exception caught',
       exception instanceof Error ? exception.stack : JSON.stringify(exception),
     );
-
     const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
     const request = ctx.getRequest();
@@ -108,7 +107,9 @@ export class GeneralExceptionFilter implements ExceptionFilter {
     let message = exception.message;
     const code = exception.getResponse()?.['code'];
     if (code) {
-      message = this.localizationService.t(`errors.${code}`);
+      message = this.localizationService.t(`errors.${code}`, {
+        args: exception.getResponse()?.['args'],
+      });
     }
     return message || 'Unauthorized';
   }
