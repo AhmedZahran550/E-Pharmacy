@@ -8,6 +8,7 @@ import { Cacheable } from '@/common/decorators/cache.decorator';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.model';
+import { NearbyBranchesDto } from './dto/nearby-branches.dto';
 
 @ApiTags('Branches')
 @Roles(Role.APP_USER, Role.GUEST, Role.ANONYMOUS)
@@ -21,6 +22,11 @@ export class BranchesController {
   @Cacheable({ key: 'branches:all', ttl: 86400 })
   findAll(@Paginate() query: QueryOptions) {
     return this.branchesService.findAll(query);
+  }
+
+  @Get('nearby')
+  findNearby(@Query() params: NearbyBranchesDto) {
+    return this.branchesService.findNearby(params);
   }
 
   @Get(':id')
