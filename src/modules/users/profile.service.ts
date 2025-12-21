@@ -66,7 +66,7 @@ export class ProfileService {
   async updateProfilePhoto(file: Express.Multer.File, userId: string) {
     try {
       const uuid = uuidv4();
-      const fileName = `profile-${userId}-${uuid}`;
+      const fileName = `profile-${userId}`;
       const extension = path.extname(file.originalname).toLowerCase();
       const filePath = `${fileName}${extension}`;
       const obj = await this.storageService.saveFile(file, filePath, 'profile');
