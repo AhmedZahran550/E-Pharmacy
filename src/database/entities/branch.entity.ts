@@ -94,11 +94,18 @@ export class Branch extends BaseEntity {
   @Column({
     type: 'tsvector',
     generatedType: 'STORED',
-    asExpression: `to_tsvector('english', 
-    COALESCE(name_en, '') || ' ' || COALESCE(name_ar, ''))`,
+    asExpression: `to_tsvector('english', COALESCE(name_en, '') || ' ' || COALESCE(address_en, ''))`,
     select: false,
   })
-  searchVector?: string;
+  searchVectorEn?: string;
+
+  @Column({
+    type: 'tsvector',
+    generatedType: 'STORED',
+    asExpression: `to_tsvector('arabic', COALESCE(name_ar, '') || ' ' || COALESCE(address_ar, ''))`,
+    select: false,
+  })
+  searchVectorAr?: string;
 
   @Column({ default: false })
   isAlwaysOpen: boolean;

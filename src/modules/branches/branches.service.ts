@@ -73,12 +73,33 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
           'distance',
         );
 
-      // Apply search if provided
+      // Apply search if provided (supports both English and Arabic with prefix matching)
       if (search) {
-        queryBuilder = queryBuilder.andWhere(
-          `(branch.localizedName->>'en' ILIKE :search OR branch.localizedName->>'ar' ILIKE :search)`,
-          { search: `%${search}%` },
-        );
+        // Use websearch_to_tsquery with wildcard for prefix matching
+        const searchTerms = search
+          .trim()
+          .split(/\s+/)
+          .map((term) => `${term}:*`)
+          .join(' & ');
+        queryBuilder = queryBuilder
+          .andWhere(
+            `(
+            branch.searchVectorEn @@ to_tsquery('english', :searchQuery) OR 
+            branch.searchVectorAr @@ to_tsquery('arabic', :searchQuery) OR
+            provider.searchVectorEn @@ to_tsquery('english', :searchQuery) OR
+            provider.searchVectorAr @@ to_tsquery('arabic', :searchQuery)
+          )`,
+            { searchQuery: searchTerms },
+          )
+          .addSelect(
+            `GREATEST(
+            ts_rank_cd(branch.searchVectorEn, to_tsquery('english', :searchQuery)),
+            ts_rank_cd(branch.searchVectorAr, to_tsquery('arabic', :searchQuery)),
+            ts_rank_cd(provider.searchVectorEn, to_tsquery('english', :searchQuery)),
+            ts_rank_cd(provider.searchVectorAr, to_tsquery('arabic', :searchQuery))
+          )`,
+            'rank',
+          );
       }
 
       // Apply filters if provided
@@ -96,8 +117,14 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
         });
       }
 
-      // Always order by distance first
-      queryBuilder = queryBuilder.orderBy('distance', 'ASC');
+      // Order by relevance rank first if search is provided, then by distance
+      if (search) {
+        queryBuilder = queryBuilder
+          .orderBy('rank', 'DESC')
+          .addOrderBy('distance', 'ASC');
+      } else {
+        queryBuilder = queryBuilder.orderBy('distance', 'ASC');
+      }
 
       // Get pagination params
       const currentPage = page || 1;
@@ -115,6 +142,7 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       const data = result.entities.map((branch, index) => ({
         id: branch.id,
         localizedName: branch.localizedName,
+        address: branch.address,
         longitude: branch.longitude,
         latitude: branch.latitude,
         distance: parseFloat(result.raw[index]?.distance || '0'),
