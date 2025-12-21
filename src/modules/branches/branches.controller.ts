@@ -25,6 +25,8 @@ export class BranchesController {
   }
 
   @Get('nearby')
+  // Cache TTL: 600 seconds (10 minutes)
+  @Cacheable({ key: 'branches:nearby:{{lat}}:{{lng}}:{{radius}}', ttl: 600 })
   findNearby(@Query() params: NearbyBranchesDto) {
     return this.branchesService.findNearby(params);
   }

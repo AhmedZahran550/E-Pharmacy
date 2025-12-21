@@ -17,17 +17,11 @@ export interface TransactionOptions {
   manager?: EntityManager;
   queryRunner?: QueryRunner;
 }
-export interface QueryOptions extends PaginateQuery, TransactionOptions {
-  enableCache?: boolean;
-  cacheTTL?: any;
-}
+export interface QueryOptions extends PaginateQuery, TransactionOptions {}
 
 export interface QueryOneOptions<T>
   extends TFindOneOptions<T>,
-    TransactionOptions {
-  enableCache?: boolean;
-  ttl?: any;
-}
+    TransactionOptions {}
 
 export interface QueryConfig<T> extends PaginateConfig<T> {}
 
