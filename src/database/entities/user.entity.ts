@@ -252,14 +252,6 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   referralCode: string;
 
-  @Column({
-    type: 'boolean',
-    asExpression: `"photo_url" IS NOT NULL`,
-    generatedType: 'STORED',
-    update: false,
-  })
-  isProfileCompleted: boolean;
-
   @OneToOne(() => MedicalProfile, (medicalProfile) => medicalProfile.user, {
     nullable: true,
   })

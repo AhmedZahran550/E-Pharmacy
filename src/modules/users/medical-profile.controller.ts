@@ -15,17 +15,17 @@ import { MedicalProfileService } from './medical-profile.service';
 export class MedicalProfileController {
   constructor(private medicalProfileService: MedicalProfileService) {}
 
-  @Post()
-  async createMedicalProfile(
-    @AuthUser() user: AuthUserDto,
-    @Body() createMedicalProfileDto: CreateMedicalProfileDto,
-  ) {
-    const profile = await this.medicalProfileService.createMedicalProfile(
-      user.id,
-      createMedicalProfileDto,
-    );
-    return profile;
-  }
+  // @Post()
+  // async createMedicalProfile(
+  //   @AuthUser() user: AuthUserDto,
+  //   @Body() createMedicalProfileDto: CreateMedicalProfileDto,
+  // ) {
+  //   const profile = await this.medicalProfileService.createMedicalProfile(
+  //     user.id,
+  //     createMedicalProfileDto,
+  //   );
+  //   return profile;
+  // }
 
   @Get()
   async getMedicalProfile(@AuthUser() user: AuthUserDto) {

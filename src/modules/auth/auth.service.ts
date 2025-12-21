@@ -446,11 +446,10 @@ export class AuthService {
 
   async verifyOtp(otpdto: VerifyOTPDto) {
     const otp = await this.otpService.verifyOtp(otpdto.mobile, otpdto.otp);
-    await this.usersService.repository.update(
-      { mobile: otp.mobile },
-      { mobileVerified: true },
-    );
-    return otp;
+    const user = await this.getAuthUser({ mobile: otp.mobile });
+    user.mobileVerified = true;
+    const authResponse = await this.getAuthResponse(user);
+    return authResponse;
   }
 
   private VerifyEmployee(employee: Employee) {

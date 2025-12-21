@@ -98,26 +98,6 @@ export class ProfileService {
     });
   }
 
-  async checkAndRewardProfileCompletion(
-    user: User,
-    manager: EntityManager,
-  ): Promise<void> {
-    const isProfileComplete =
-      user.emailVerified &&
-      user.idVerified &&
-      user.mobileVerified &&
-      user.photoUrl &&
-      !!user.firstName && // Example: check other required fields
-      !!user.lastName; // Example: check other required fields
-    if (isProfileComplete && !user.isProfileCompleted) {
-      try {
-        //  Grant the loyalty points in a transaction
-      } catch (error) {
-        console.error('Failed to reward user for profile completion', error);
-      }
-    }
-  }
-
   async getUserProfile(userId: string) {
     const qb = this.usersService.repository
       .createQueryBuilder('user')
