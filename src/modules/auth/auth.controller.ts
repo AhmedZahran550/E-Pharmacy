@@ -47,7 +47,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('otp/verify')
   verifyOtp(@Body() otpdto: VerifyOTPDto) {
-    return this.otpService.verifyOtp(otpdto.mobile, otpdto.otp);
+    return this.authService.verifyOtp(otpdto);
   }
 
   @Public()

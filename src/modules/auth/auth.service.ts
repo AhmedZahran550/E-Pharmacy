@@ -41,6 +41,7 @@ import { hmacHashing } from '@/common/hmac-hashing';
 import { GoogleProfile } from './strategies/google.strategy';
 import { FacebookProfile } from './strategies/facebook.strategy';
 import { AppleProfile } from './strategies/apple.strategy';
+import { VerifyOTPDto } from './dto/otp.dto';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -97,6 +98,7 @@ export class AuthService {
       ]);
     }
   }
+
   async signUp(signUpDto: SignUpDto) {
     try {
       signUpDto.isPrincipal = true;
@@ -440,6 +442,15 @@ export class AuthService {
     }
     delete user.password;
     return user;
+  }
+
+  async verifyOtp(otpdto: VerifyOTPDto) {
+    const otp = await this.otpService.verifyOtp(otpdto.mobile, otpdto.otp);
+    await this.usersService.repository.update(
+      { mobile: otp.mobile },
+      { mobileVerified: true },
+    );
+    return otp;
   }
 
   private VerifyEmployee(employee: Employee) {

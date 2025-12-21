@@ -58,14 +58,6 @@ export class OtpService extends DBService<Otp> {
 
   async verifyOtp(mobile: string, otp: string) {
     try {
-      const OTP_MOBILE_WHITE_LIST = this.config.get('OTP_MOBILE_WHITELIST');
-      if (
-        OTP_MOBILE_WHITE_LIST &&
-        OTP_MOBILE_WHITE_LIST.split(',').includes(mobile)
-      ) {
-        return;
-      }
-
       const qb = this.otpRepository
         .createQueryBuilder('otp')
         .where('otp.mobile = :mobile', { mobile })
@@ -80,7 +72,6 @@ export class OtpService extends DBService<Otp> {
           },
         ]);
       }
-
       const validationError: FieldError = {
         property: 'otp',
         constraints: {
@@ -89,7 +80,6 @@ export class OtpService extends DBService<Otp> {
         code: ErrorCodes.OTP_INVALID,
         message: 'Invalid OTP',
       };
-
       const oneMinuteAgo = new Date(Date.now() - 60 * 1000); // 1 minute ago
       if (isBefore(otpEntity.metadata.createdAt, oneMinuteAgo)) {
         validationError.code = ErrorCodes.OTP_EXPIRED;
