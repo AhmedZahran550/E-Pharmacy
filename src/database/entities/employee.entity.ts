@@ -87,6 +87,12 @@ export class Employee extends BaseEntity {
   @Column({ type: 'json', nullable: true })
   policies?: Policy[];
 
+  @Column({ default: false })
+  isOnline?: boolean;
+
+  @DateColumn({ nullable: true })
+  lastActiveAt?: Date;
+
   @ManyToOne(() => Branch, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn()
   branch: Branch;

@@ -187,6 +187,11 @@ export class AuthService {
         return await this.getAdminToken(dto);
       }
       const employee = await this.fetchAndVerifyEmployee(dto);
+      // Set employee as online
+      await this.employeesService.update(employee.id, {
+        isOnline: true,
+        lastActiveAt: new Date(),
+      } as any);
       return await this.employeeToAuthUser(employee);
     } catch (error) {
       this.logger.error(error);
@@ -700,5 +705,33 @@ export class AuthService {
         return `${policy.subject}:${actions}`;
       })
       .filter((item) => item !== '');
+  }
+
+  /**
+   * Logout handler - sets employee as offline if user is an employee
+   * Distinguishes between app users and portal employees by checking roles
+   */
+  async logout(user: AuthUserDto) {
+    // Check if user is an employee (portal user) by checking for employee-specific roles
+    const employeeRoles = [
+      Role.PROVIDER_USER,
+      Role.PROVIDER_ADMIN,
+      Role.SYSTEM_ADMIN,
+      Role.SYSTEM_USER,
+      Role.ADMIN,
+    ];
+
+    const isEmployee = user.roles?.some((role) => employeeRoles.includes(role));
+
+    if (isEmployee) {
+      // Set employee as offline
+      await this.employeesService.update(user.id, {
+        isOnline: false,
+        lastActiveAt: new Date(),
+      } as any);
+    }
+
+    // For app users, we don't need to do anything
+    return { success: true };
   }
 }

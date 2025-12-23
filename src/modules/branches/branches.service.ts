@@ -21,6 +21,7 @@ import { DataSource, Repository } from 'typeorm';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { CacheService } from '@/common/cache.service';
 import { NearbyBranchesDto } from './dto/nearby-branches.dto';
+import { EmployeesService } from '../employees/employees.service';
 
 export const BRANCHES_PAGINATION_CONFIG: QueryConfig<Branch> = {
   sortableColumns: [...localizedQueryConfig.sortableColumns],
@@ -41,6 +42,7 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
     @InjectRepository(Branch)
     repository: Repository<Branch>,
     private dataSource: DataSource,
+    private employeesService: EmployeesService,
   ) {
     super(repository, BRANCHES_PAGINATION_CONFIG); // 24 hours
   }
@@ -71,6 +73,20 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
             ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
           ) / 1000`,
           'distance',
+        )
+        // Add subquery to count online doctors
+        .addSelect(
+          (subQuery) =>
+            subQuery
+              .select('COUNT(*)', 'count')
+              .from('employee', 'emp')
+              .where('emp.branch_id = branch.id')
+              .andWhere("emp.roles::text[] @> ARRAY['provider_doctor']")
+              .andWhere("emp.type = 'provider'")
+              .andWhere('emp.is_online = true')
+              .andWhere('emp.disabled = false')
+              .andWhere('emp.locked = false'),
+          'onlineDoctorsCount',
         );
 
       // Apply search if provided (supports both English and Arabic with prefix matching)
@@ -139,6 +155,7 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       const result = await queryBuilder.getRawAndEntities();
 
       // Map to clean response structure with only needed fields
+      // onlineDoctorsCount comes from the subquery in main query
       const data = result.entities.map((branch, index) => ({
         id: branch.id,
         localizedName: branch.localizedName,
@@ -146,6 +163,10 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
         longitude: branch.longitude,
         latitude: branch.latitude,
         distance: parseFloat(result.raw[index]?.distance || '0'),
+        onlineDoctorsCount: parseInt(
+          result.raw[index]?.onlineDoctorsCount || '0',
+        ),
+        doctorsCount: branch.doctorsCount || 0,
         provider: {
           id: branch.provider.id,
           localizedName: (branch.provider as any).localizedName,
@@ -168,6 +189,89 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       };
     } catch (error) {
       this.logger.error('error finding nearby branches', error);
+      handleError(error);
+    }
+  }
+
+  async findById(id: string, options?: any): Promise<any> {
+    try {
+      // Use query builder with subquery for online doctors count
+      const qb = this.repository
+        .createQueryBuilder('branch')
+        .where('branch.id = :id', { id })
+        .addSelect(
+          (subQuery) =>
+            subQuery
+              .select('COUNT(*)', 'count')
+              .from('employee', 'emp')
+              .where('emp.branch_id = branch.id')
+              .andWhere("emp.roles::text[] @> ARRAY['provider_doctor']")
+              .andWhere("emp.type = 'provider'")
+              .andWhere('emp.is_online = true')
+              .andWhere('emp.disabled = false')
+              .andWhere('emp.locked = false'),
+          'onlineDoctorsCount',
+        );
+
+      // Apply additional where conditions if provided
+      if (options?.where) {
+        Object.entries(options.where).forEach(([key, value]) => {
+          if (key !== 'id') {
+            qb.andWhere(`branch.${key} = :${key}`, { [key]: value });
+          }
+        });
+      }
+
+      const result = await qb.getRawAndEntities();
+
+      if (result.entities.length === 0) {
+        throw new Error('Entity not found');
+      }
+
+      const branch = result.entities[0];
+      return {
+        ...branch,
+        onlineDoctorsCount: parseInt(result.raw[0]?.onlineDoctorsCount || '0'),
+      };
+    } catch (error) {
+      handleError(error);
+    }
+  }
+
+  async findAll(options: QueryOptions) {
+    try {
+      // Create query builder with subquery for online doctors count
+      const qb = this.repository
+        .createQueryBuilder('branch')
+        .addSelect(
+          (subQuery) =>
+            subQuery
+              .select('COUNT(*)', 'count')
+              .from('employee', 'emp')
+              .where('emp.branch_id = branch.id')
+              .andWhere("emp.roles::text[] @> ARRAY['provider_doctor']")
+              .andWhere("emp.type = 'provider'")
+              .andWhere('emp.is_online = true')
+              .andWhere('emp.disabled = false')
+              .andWhere('emp.locked = false'),
+          'onlineDoctorsCount',
+        );
+
+      const result = await paginate<Branch>(options, qb, this.queryConfig);
+
+      // Map results to include the online count from raw
+      if (result.data && Array.isArray(result.data)) {
+        result.data = (result.data as any[]).map((item, index) => ({
+          ...item,
+          onlineDoctorsCount: parseInt(
+            (result as any).raw?.[index]?.onlineDoctorsCount || '0',
+          ),
+        }));
+      }
+
+      return result;
+    } catch (error) {
+      this.logger.error('error', error);
       handleError(error);
     }
   }

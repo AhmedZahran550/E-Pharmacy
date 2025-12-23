@@ -127,7 +127,8 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout() {
+  async logout(@AuthUser() user: AuthUserDto) {
+    await this.authService.logout(user);
     return { success: true };
   }
 }
