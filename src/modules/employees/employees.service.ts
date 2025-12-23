@@ -10,6 +10,19 @@ import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { QueryOptions } from '@/common/query-options';
 import { ErrorCodes } from '@/common/error-codes';
 import { Role } from '../auth/role.model';
+import { FilterOperator, PaginateConfig } from 'nestjs-paginate';
+
+export const DOCTORS_PAGINATION_CONFIG: PaginateConfig<Employee> = {
+  sortableColumns: ['firstName', 'lastName', 'isOnline'],
+  filterableColumns: {
+    isOnline: [FilterOperator.EQ],
+    'branch.id': [FilterOperator.EQ],
+    gender: [FilterOperator.EQ],
+  },
+  searchableColumns: ['firstName', 'lastName'],
+  maxLimit: 100,
+  defaultLimit: 20,
+};
 
 @Injectable()
 export class EmployeesService extends DBService<
@@ -24,7 +37,7 @@ export class EmployeesService extends DBService<
     @InjectRepository(Branch)
     private branchRepository: Repository<Branch>,
   ) {
-    super(repository);
+    super(repository, DOCTORS_PAGINATION_CONFIG);
   }
 
   async create(data: CreateEmployeeDto) {
@@ -140,5 +153,125 @@ export class EmployeesService extends DBService<
         1,
       );
     }
+  }
+
+  /**
+   * Find doctors with filters for app users
+   */
+  async findDoctors(options: QueryOptions) {
+    const qb = this.repository
+      .createQueryBuilder('employee')
+      .leftJoinAndSelect('employee.branch', 'branch')
+      .leftJoinAndSelect('branch.provider', 'provider')
+      .leftJoinAndSelect('branch.city', 'city')
+      .where('employee.type = :type', { type: EmployeeType.PROVIDER })
+      .andWhere("employee.roles::text[] @> ARRAY['provider_doctor']")
+      .andWhere('employee.disabled = false')
+      .andWhere('employee.locked = false')
+      .select([
+        'employee.id',
+        'employee.firstName',
+        'employee.lastName',
+        'employee.gender',
+        'employee.isOnline',
+        'branch.id',
+        'branch.name_en',
+        'branch.name_ar',
+        'branch.address_en',
+        'branch.address_ar',
+        'branch.latitude',
+        'branch.longitude',
+        'provider.id',
+        'provider.name_en',
+        'provider.name_ar',
+        'city.id',
+        'city.name_en',
+        'city.name_ar',
+      ])
+      .addSelect('employee.created_at', 'employee_created_at');
+
+    return await super.findAll(options, qb);
+  }
+
+  /**
+   * Find nearby doctors based on location with optional online filter
+   */
+  async findNearbyDoctors(
+    lat: number,
+    lng: number,
+    radius: number = 10,
+    isOnline?: boolean,
+  ) {
+    const radiusMeters = radius * 1000;
+
+    let qb = this.repository
+      .createQueryBuilder('employee')
+      .leftJoinAndSelect('employee.branch', 'branch')
+      .leftJoinAndSelect('branch.provider', 'provider')
+      .leftJoinAndSelect('branch.city', 'city')
+      .where('employee.type = :type', { type: EmployeeType.PROVIDER })
+      .andWhere("employee.roles::text[] @> ARRAY['provider_doctor']")
+      .andWhere('employee.disabled = false')
+      .andWhere('employee.locked = false')
+      .andWhere(
+        `ST_DWithin(
+          branch.location,
+          ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+          :radius
+        )`,
+        { lat, lng, radius: radiusMeters },
+      );
+
+    // Add distance calculation before select
+    qb = qb.addSelect(
+      `ST_Distance(
+        branch.location,
+        ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
+      ) / 1000`,
+      'distance',
+    );
+
+    // Now add the select for specific fields
+    qb = qb
+      .select([
+        'employee.id',
+        'employee.firstName',
+        'employee.lastName',
+        'employee.gender',
+        'employee.isOnline',
+        'branch.id',
+        'branch.name_en',
+        'branch.name_ar',
+        'branch.address_en',
+        'branch.address_ar',
+        'branch.latitude',
+        'branch.longitude',
+        'provider.id',
+        'provider.name_en',
+        'provider.name_ar',
+        'city.id',
+        'city.name_en',
+        'city.name_ar',
+      ])
+      .addSelect(
+        `ST_Distance(
+          branch.location,
+          ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
+        ) / 1000`,
+        'distance',
+      )
+      .orderBy('distance', 'ASC');
+
+    // Apply online filter if specified
+    if (isOnline !== undefined) {
+      qb = qb.andWhere('employee.isOnline = :isOnline', { isOnline });
+    }
+
+    const result = await qb.getRawAndEntities();
+
+    return result.entities.map((employee, index) => ({
+      ...employee,
+      distance: parseFloat(result.raw[index]?.distance || '0'),
+    }));
   }
 }

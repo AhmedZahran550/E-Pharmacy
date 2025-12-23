@@ -210,7 +210,7 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
               .andWhere('emp.is_online = true')
               .andWhere('emp.disabled = false')
               .andWhere('emp.locked = false'),
-          'onlineDoctorsCount',
+          'availableDoctors',
         );
 
       // Apply additional where conditions if provided
@@ -231,7 +231,7 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       const branch = result.entities[0];
       return {
         ...branch,
-        onlineDoctorsCount: parseInt(result.raw[0]?.onlineDoctorsCount || '0'),
+        availableDoctors: parseInt(result.raw[0]?.availableDoctors || '0'),
       };
     } catch (error) {
       handleError(error);
@@ -254,7 +254,7 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
               .andWhere('emp.is_online = true')
               .andWhere('emp.disabled = false')
               .andWhere('emp.locked = false'),
-          'onlineDoctorsCount',
+          'availableDoctors',
         );
 
       const result = await paginate<Branch>(options, qb, this.queryConfig);
@@ -263,8 +263,8 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       if (result.data && Array.isArray(result.data)) {
         result.data = (result.data as any[]).map((item, index) => ({
           ...item,
-          onlineDoctorsCount: parseInt(
-            (result as any).raw?.[index]?.onlineDoctorsCount || '0',
+          availableDoctors: parseInt(
+            (result as any).raw?.[index]?.availableDoctors || '0',
           ),
         }));
       }
