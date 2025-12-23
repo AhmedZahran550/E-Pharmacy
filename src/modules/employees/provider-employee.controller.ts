@@ -43,7 +43,9 @@ export class ProviderEmployeesController {
     return this.employeesService.create({
       ...createEmployeeDto,
       type: EmployeeType.PROVIDER,
-      branch: { id: user.branch?.id },
+      branch: { id: user.branchId },
+      roles: [Role.PROVIDER_DOCTOR],
+      createdBy: user.id,
     } as CreateEmployeeDto);
   }
 

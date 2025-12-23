@@ -16,6 +16,8 @@ import { EmployeesService } from './employees.service';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.model';
 import { EmployeeType } from '@/database/entities/employee.entity';
+import { AuthUser } from '../auth/decorators/auth-user.decorator';
+import { AuthUserDto } from '../auth/dto/auth-user.dto';
 
 @Controller('admin/employees')
 @Roles(Role.SYSTEM_ADMIN)
@@ -29,9 +31,13 @@ export class AdminEmployeesController {
   }
 
   @Post()
-  async create(@Body() createEmployeeDto: CreateEmployeeDto) {
+  async create(
+    @Body() createEmployeeDto: CreateEmployeeDto,
+    @AuthUser() user: AuthUserDto,
+  ) {
     return this.employeesService.create({
       ...createEmployeeDto,
+      createdBy: user?.id,
     });
   }
 

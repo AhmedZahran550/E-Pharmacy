@@ -101,4 +101,6 @@ export class CreateEmployeeDto {
 
   @IsEnum(EmployeeType)
   type: EmployeeType;
+
+  createdBy?: string;
 }

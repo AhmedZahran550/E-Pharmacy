@@ -55,7 +55,12 @@ export class EmployeesService extends DBService<
     if (data.type === EmployeeType.PROVIDER) {
       data.roles = [...data.roles, Role.PROVIDER_USER];
     }
-    const employee = await super.create(data);
+    const employee = await super.create({
+      ...data,
+      metadata: {
+        createdBy: data.createdBy,
+      },
+    } as any);
     delete employee.password;
     return employee;
   }
