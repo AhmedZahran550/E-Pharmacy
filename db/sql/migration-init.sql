@@ -1,10 +1,5 @@
 -- Migration script to create initial database schema and indexes
 -- below for full text search capabilities
-
--- Drop old search vector indexes for provider and branch
-DROP INDEX IF EXISTS idx_provider_search_vector;
-DROP INDEX IF EXISTS idx_branch_search_vector;
-
 -- Create separate English and Arabic search vector indexes for provider
 CREATE INDEX IF NOT EXISTS idx_provider_search_vector_en 
 ON provider 

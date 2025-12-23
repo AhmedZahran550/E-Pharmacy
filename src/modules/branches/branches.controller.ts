@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Post, Body } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BranchesService } from './branches.service';
 import { ApiQuery } from '@/common/decorators/pagination-query.decorator';
@@ -9,6 +9,9 @@ import { CreateBranchDto } from './dto/create-branch.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.model';
 import { NearbyBranchesDto } from './dto/nearby-branches.dto';
+import { RateBranchDto } from './dto/rate-branch.dto';
+import { AuthUser } from '../auth/decorators/auth-user.decorator';
+import { AuthUserDto } from '../auth/dto/auth-user.dto';
 
 @ApiTags('Branches')
 @Roles(Role.APP_USER, Role.GUEST, Role.ANONYMOUS)
@@ -36,5 +39,20 @@ export class BranchesController {
   @Cacheable({ key: 'branch:{{id}}', ttl: 3600 })
   findOne(@Param('id') id: string) {
     return this.branchesService.findById(id);
+  }
+
+  @Post(':id/rate')
+  @Roles(Role.APP_USER)
+  async rateBranch(
+    @Param('id') id: string,
+    @Body() ratingDto: RateBranchDto,
+    @AuthUser() user: AuthUserDto,
+  ) {
+    return this.branchesService.rateBranch(
+      id,
+      user.id,
+      ratingDto.rating,
+      ratingDto.notes,
+    );
   }
 }

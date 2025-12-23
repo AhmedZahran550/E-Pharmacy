@@ -23,6 +23,8 @@ import { CacheService } from '@/common/cache.service';
 import { NearbyBranchesDto } from './dto/nearby-branches.dto';
 import { EmployeesService } from '../employees/employees.service';
 
+import { BranchRating } from '@/database/entities/branch-rating.entity';
+
 export const BRANCHES_PAGINATION_CONFIG: QueryConfig<Branch> = {
   sortableColumns: [...localizedQueryConfig.sortableColumns],
   filterableColumns: {
@@ -41,6 +43,8 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
   constructor(
     @InjectRepository(Branch)
     repository: Repository<Branch>,
+    @InjectRepository(BranchRating)
+    private branchRatingRepository: Repository<BranchRating>,
     private dataSource: DataSource,
     private employeesService: EmployeesService,
   ) {
@@ -272,6 +276,46 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       return result;
     } catch (error) {
       this.logger.error('error', error);
+      handleError(error);
+    }
+  }
+
+  async rateBranch(
+    branchId: string,
+    userId: string,
+    rating: number,
+    notes?: string,
+  ) {
+    try {
+      // Check if user already rated this branch
+      const existingRating = await this.branchRatingRepository.findOne({
+        where: {
+          user: { id: userId },
+          branch: { id: branchId },
+        },
+      });
+
+      if (existingRating) {
+        throw new BadRequestException({});
+      }
+      // Verify branch exists
+      const branch = await this.repository.findOne({
+        where: { id: branchId },
+      });
+      if (!branch) {
+        throw new BadRequestException('Branch not found');
+      }
+      // Create new rating
+      // Database trigger will automatically update branch.averageRating and branch.ratingCount
+      const newRating = this.branchRatingRepository.create({
+        user: { id: userId },
+        branch: { id: branchId },
+        rating,
+        notes,
+      });
+      await this.branchRatingRepository.save(newRating);
+    } catch (error) {
+      this.logger.error('error rating branch', error);
       handleError(error);
     }
   }

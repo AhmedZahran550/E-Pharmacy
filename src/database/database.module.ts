@@ -18,6 +18,7 @@ import { Provider } from './entities/provider.entity';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { DeviceToken } from './entities/device-token.entity';
 import { SystemNotification } from './entities/system-notification.entity';
+import { BranchRating } from './entities/branch-rating.entity';
 
 @Global()
 @Module({
@@ -36,6 +37,7 @@ import { SystemNotification } from './entities/system-notification.entity';
       Provider,
       Branch,
       BranchItem,
+      BranchRating,
       Item,
       Order,
       OrderItem,
