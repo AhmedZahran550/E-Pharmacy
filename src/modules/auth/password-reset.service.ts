@@ -9,6 +9,9 @@ import { Repository } from 'typeorm';
 import { EmployeeDto } from '../employees/dto/employee.dto';
 import { EmployeesService } from '../employees/employees.service';
 import { EmailService } from '@/common/mailer/email.service';
+import { UsersService } from '../users/users.service';
+import { User } from '@/database/entities/user.entity';
+import { Employee } from '@/database/entities/employee.entity';
 
 @Injectable()
 export class PasswordResetService {
@@ -16,46 +19,78 @@ export class PasswordResetService {
 
   constructor(
     private employeesService: EmployeesService,
+    private usersService: UsersService,
     private jwtService: JwtService,
     private config: ConfigService,
     private emailService: EmailService,
     @InjectRepository(PasswordResetToken)
     private tokenRepository: Repository<PasswordResetToken>,
+    @InjectRepository(Employee)
+    private employeeRepository: Repository<Employee>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
-  async requestReset(email: string) {
-    const employee = await this.employeesService.findOne({ where: { email } });
-    if (!employee) {
-      throw new BadRequestException([
-        {
-          property: 'email',
-          code: ErrorCodes.USER_NOT_FOUND,
-        },
-      ]);
+  async requestReset(email: string, clientType: 'user' | 'employee') {
+    let entity: User | Employee;
+    let isUser = clientType === 'user';
+
+    if (isUser) {
+      // Find user
+      const user = await this.usersService.findByEmail(email);
+
+      if (!user) {
+        throw new BadRequestException([
+          {
+            property: 'email',
+            code: ErrorCodes.USER_NOT_FOUND,
+          },
+        ]);
+      }
+
+      entity = await this.userRepository.findOne({ where: { id: user.id } });
+    } else {
+      // Find employee
+      const employee = await this.employeeRepository.findOne({
+        where: { email },
+      });
+
+      if (!employee) {
+        throw new BadRequestException([
+          {
+            property: 'email',
+            code: ErrorCodes.USER_NOT_FOUND,
+          },
+        ]);
+      }
+
+      entity = employee;
     }
-
     // Invalidate any existing tokens
-    await this.tokenRepository.update(
-      {
-        employee: {
-          id: employee.id,
-        },
-        used: false,
-      },
-      { used: true },
-    );
+    const updateCondition = isUser
+      ? { user: { id: entity.id }, used: false }
+      : { employee: { id: entity.id }, used: false };
 
-    const token = await this.generateResetToken(employee);
+    await this.tokenRepository.update(updateCondition, { used: true });
+
+    const token = await this.generateResetToken(entity);
 
     // Save token to database
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
 
-    await this.tokenRepository.save({
+    const tokenData: any = {
       token,
-      employee,
       expiresAt,
-    });
+    };
+
+    if (isUser) {
+      tokenData.user = entity;
+    } else {
+      tokenData.employee = entity;
+    }
+
+    await this.tokenRepository.save(tokenData);
 
     // Send reset email
     await this.emailService.sendPasswordResetEmail(email, token);
@@ -63,18 +98,21 @@ export class PasswordResetService {
     return { message: 'Reset instructions sent to your email' };
   }
 
-  async resetPassword(token: string, newPassword: string) {
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    clientType: 'user' | 'employee',
+  ) {
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      await this.jwtService.verifyAsync(token, {
         secret: this.config.get('jwt.resetToken.secret'),
       });
-
-      // Find and validate token
+      const isUser = clientType === 'user';
+      // Find and validate token with appropriate relations
       const resetToken = await this.tokenRepository.findOne({
         where: { token, used: false },
-        relations: ['employee'],
+        relations: isUser ? ['user'] : ['employee'],
       });
-
       if (!resetToken || resetToken.used || resetToken.expiresAt < new Date()) {
         throw new BadRequestException([
           {
@@ -84,11 +122,43 @@ export class PasswordResetService {
         ]);
       }
 
-      const employee = await this.employeesService.findOne({
-        where: { id: resetToken.employee.id },
-      });
-      employee.password = newPassword;
-      await this.employeesService.save(employee);
+      let entity: User | Employee;
+
+      if (isUser) {
+        const user = await this.userRepository.findOne({
+          where: { id: resetToken.user.id },
+        });
+
+        if (!user) {
+          throw new BadRequestException([
+            {
+              property: 'token',
+              code: ErrorCodes.INVALID_TOKEN,
+            },
+          ]);
+        }
+
+        user.password = newPassword;
+        await this.userRepository.save(user);
+        entity = user;
+      } else {
+        const employee = await this.employeeRepository.findOne({
+          where: { id: resetToken.employee.id },
+        });
+
+        if (!employee) {
+          throw new BadRequestException([
+            {
+              property: 'token',
+              code: ErrorCodes.INVALID_TOKEN,
+            },
+          ]);
+        }
+
+        employee.password = newPassword;
+        await this.employeeRepository.save(employee);
+        entity = employee;
+      }
 
       // Mark token as used
       await this.tokenRepository.update(resetToken.id, { used: true });
@@ -105,10 +175,10 @@ export class PasswordResetService {
     }
   }
 
-  private async generateResetToken(user: EmployeeDto) {
+  private async generateResetToken(entity: User | Employee) {
     const payload = {
-      sub: user.id,
-      email: user.email,
+      sub: entity.id,
+      email: entity.email,
     };
 
     return this.jwtService.sign(payload, {
