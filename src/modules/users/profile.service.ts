@@ -45,7 +45,10 @@ export class ProfileService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        message: 'User not found',
+        code: ErrorCodes.USER_NOT_FOUND,
+      });
     }
 
     // Merge existing preferences with new ones

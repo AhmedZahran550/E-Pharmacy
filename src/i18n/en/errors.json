@@ -108,5 +108,8 @@
   "TICKET_ALREADY_RESOLVED": "Cannot update or send messages on a resolved ticket.",
   "NID_DOB_INCONSISTENCY": "The National ID and Date of Birth are not consistent with each other. Please review both fields. ",
   "SOCIAL_LOGIN_NO_PASSWORD": "This account was created using {provider} login. Please sign in with {provider} or use 'Forgot Password' to set a password.",
-  "EMAIL_ALREADY_EXIST": "Email already exists."
+  "EMAIL_ALREADY_EXIST": "Email already exists.",
+  "BRANCH_ALREADY_RATED": "You have already rated this branch.",
+  "BRANCH_NOT_FOUND": "Branch not found.",
+  "MEDICAL_PROFILE_NOT_FOUND": "Medical profile not found."
 }

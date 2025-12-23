@@ -9,6 +9,7 @@ import { MedicalProfile } from '@/database/entities/medical-profile.entity';
 import { CreateMedicalProfileDto } from './dto/create-medical-profile.dto';
 import { UpdateMedicalProfileDto } from './dto/update-medical-profile.dto';
 import { User } from '@/database/entities/user.entity';
+import { ErrorCodes } from '@/common/error-codes';
 
 @Injectable()
 export class MedicalProfileService {
@@ -103,7 +104,10 @@ export class MedicalProfileService {
     });
 
     if (!medicalProfile) {
-      throw new NotFoundException('Medical profile not found');
+      throw new NotFoundException({
+        message: 'Medical profile not found',
+        code: ErrorCodes.MEDICAL_PROFILE_NOT_FOUND,
+      });
     }
 
     return this.medicalProfileRepository.softRemove(medicalProfile);

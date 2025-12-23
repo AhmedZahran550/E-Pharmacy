@@ -37,6 +37,7 @@ import { NotificationChannel } from '@/database/entities/system-notification.ent
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Item } from '@/database/entities/item.entity';
+import { ErrorCodes } from '@/common/error-codes';
 
 const ORDERS_PAGINATION_CONFIG: QueryConfig<Order> = {
   sortableColumns: ['metadata.createdAt'],
@@ -170,7 +171,12 @@ export class OrdersService extends DBService<Order> {
       .where('order.id = :orderId', { orderId })
       .andWhere('order.user_id = :userId', { userId });
     const order = await qb.getOne();
-    if (!order) throw new NotFoundException('Order not found');
+    if (!order) {
+      throw new NotFoundException({
+        message: 'Order not found',
+        code: ErrorCodes.ORDER_NOT_FOUND,
+      });
+    }
     return order;
   }
 
@@ -185,7 +191,12 @@ export class OrdersService extends DBService<Order> {
       const order = await this.repository.findOne({
         where: { id: orderId, user: { id: userId } } as any,
       });
-      if (!order) throw new NotFoundException('Order not found');
+      if (!order) {
+        throw new NotFoundException({
+          message: 'Order not found',
+          code: ErrorCodes.ORDER_NOT_FOUND,
+        });
+      }
       const updatedOrder = this.repository.merge(order, updateOrderDto);
       const saved = await this.repository.save(updatedOrder);
       if (updateOrderDto?.items?.length > 0) {
@@ -236,7 +247,7 @@ export class OrdersService extends DBService<Order> {
     if (existingItems.length !== items.length) {
       throw new NotFoundException({
         message: 'Some items not found',
-        code: 'ITEM_NOT_FOUND',
+        code: ErrorCodes.ITEM_NOT_FOUND,
       });
     }
     await manager.delete(OrderItem, { order: { id: order.id } });

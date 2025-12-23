@@ -24,6 +24,7 @@ import { NearbyBranchesDto } from './dto/nearby-branches.dto';
 import { EmployeesService } from '../employees/employees.service';
 
 import { BranchRating } from '@/database/entities/branch-rating.entity';
+import { ErrorCodes } from '@/common/error-codes';
 
 export const BRANCHES_PAGINATION_CONFIG: QueryConfig<Branch> = {
   sortableColumns: [...localizedQueryConfig.sortableColumns],
@@ -231,7 +232,10 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       const result = await qb.getRawAndEntities();
 
       if (result.entities.length === 0) {
-        throw new Error('Entity not found');
+        throw new BadRequestException({
+          message: 'Branch not found',
+          code: ErrorCodes.BRANCH_NOT_FOUND,
+        });
       }
 
       const branch = result.entities[0];
@@ -298,14 +302,20 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       });
 
       if (existingRating) {
-        throw new BadRequestException({});
+        throw new BadRequestException({
+          message: 'You have already rated this branch',
+          code: ErrorCodes.BRANCH_ALREADY_RATED,
+        });
       }
       // Verify branch exists
       const branch = await this.repository.findOne({
         where: { id: branchId },
       });
       if (!branch) {
-        throw new BadRequestException('Branch not found');
+        throw new BadRequestException({
+          message: 'Branch not found',
+          code: ErrorCodes.BRANCH_NOT_FOUND,
+        });
       }
       // Create new rating
       // Database trigger will automatically update branch.averageRating and branch.ratingCount
