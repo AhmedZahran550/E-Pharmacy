@@ -41,7 +41,7 @@ export class BranchesController {
     return this.branchesService.findById(id);
   }
 
-  @Post(':id/rate')
+  @Post(':id/rating')
   @Roles(Role.APP_USER)
   async rateBranch(
     @Param('id') id: string,

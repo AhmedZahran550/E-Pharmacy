@@ -171,6 +171,8 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
           result.raw[index]?.onlineDoctorsCount || '0',
         ),
         doctorsCount: branch.doctorsCount || 0,
+        averageRating: branch.averageRating || 0,
+        ratingCount: branch.ratingCount || 0,
         provider: {
           id: branch.provider.id,
           localizedName: (branch.provider as any).localizedName,

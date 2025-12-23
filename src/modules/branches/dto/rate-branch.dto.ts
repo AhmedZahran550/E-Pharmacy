@@ -2,9 +2,9 @@ import {
   IsNumber,
   Max,
   Min,
-  IsOptional,
   IsString,
   ValidateIf,
+  IsNotEmpty,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -27,7 +27,7 @@ export class RateBranchDto {
     example: 'The service was good but the waiting time was too long',
   })
   @ValidateIf((o) => o.rating < 5)
-  @IsString({ message: 'Notes are required when rating is less than 5' })
-  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
   notes?: string;
 }
