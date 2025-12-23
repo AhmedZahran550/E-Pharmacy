@@ -21,9 +21,9 @@ import { Policy } from '@/modules/auth/policies.types';
 const LOCKED_DURATION_IN_MINUTES: number = process.env.LOCKED_DURATION
   ? parseInt(process.env.LOCKED_DURATION)
   : 30;
+
 export enum EmployeeType {
   SYSTEM = 'system',
-  CUSTOMER = 'customer',
   PROVIDER = 'provider',
 }
 

@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmployeesService } from './employees.service';
 import { ProviderEmployeesController } from './provider-employee.controller';
+import { AdminEmployeesController } from './admin-employees.controller';
+import { Employee } from '@/database/entities/employee.entity';
+import { Branch } from '@/database/entities/branch.entity';
 
 @Module({
-  controllers: [ProviderEmployeesController],
+  imports: [TypeOrmModule.forFeature([Employee, Branch])],
+  controllers: [ProviderEmployeesController, AdminEmployeesController],
   providers: [EmployeesService],
   exports: [EmployeesService],
 })

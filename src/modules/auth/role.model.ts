@@ -6,6 +6,7 @@ export enum Role {
   APP_TESTER = 'app_tester',
   GUEST = 'guest',
 
+  PROVIDER_DOCTOR = 'provider_doctor',
   PROVIDER_USER = 'provider_user',
   PROVIDER_ADMIN = 'provider_admin',
   SYSTEM_USER = 'system_user',

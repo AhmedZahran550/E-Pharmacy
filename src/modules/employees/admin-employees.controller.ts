@@ -13,47 +13,34 @@ import { Paginate } from 'nestjs-paginate';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { EmployeesService } from './employees.service';
-import { Policies } from '../auth/decorators/policies.decorator';
-import { Subject } from '../auth/policies.types';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.model';
-import { AuthUser } from '../auth/decorators/auth-user.decorator';
-import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { EmployeeType } from '@/database/entities/employee.entity';
 
-@Controller('provider/employees')
-@Roles(Role.PROVIDER_ADMIN)
-export class ProviderEmployeesController {
+@Controller('admin/employees')
+@Roles(Role.SYSTEM_ADMIN)
+export class AdminEmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 
   @ApiQuery(CreateEmployeeDto)
   @Get()
-  async findAll(
-    @Paginate() query: QueryOptions,
-    @AuthUser() user: AuthUserDto,
-  ) {
-    return this.employeesService.findProviderEmployees(user.providerId, query);
+  async findAll(@Paginate() query: QueryOptions) {
+    return this.employeesService.findSystemEmployees(query);
   }
 
   @Post()
-  async create(
-    @Body() createEmployeeDto: CreateEmployeeDto,
-    @AuthUser() user: AuthUserDto,
-  ) {
+  async create(@Body() createEmployeeDto: CreateEmployeeDto) {
     return this.employeesService.create({
       ...createEmployeeDto,
-      type: EmployeeType.PROVIDER,
-      branch: { id: user.branch?.id },
-    } as CreateEmployeeDto);
+    });
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
+  findOne(@Param('id') id: string) {
     return this.employeesService.findOne({
       where: {
         id,
-        branch: { provider: { id: user.providerId } },
-        type: EmployeeType.PROVIDER,
+        type: EmployeeType.SYSTEM,
       },
     });
   }
@@ -62,23 +49,20 @@ export class ProviderEmployeesController {
   update(
     @Param('id') id: string,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
-    @AuthUser() user: AuthUserDto,
   ) {
     return this.employeesService.update(id, updateEmployeeDto, {
       where: {
         id,
-        branch: { provider: { id: user.providerId } },
-        type: EmployeeType.PROVIDER,
+        type: EmployeeType.SYSTEM,
       },
     });
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
+  remove(@Param('id') id: string) {
     return this.employeesService.delete(id, {
       where: {
-        branch: { provider: { id: user.providerId } },
-        type: EmployeeType.PROVIDER,
+        type: EmployeeType.SYSTEM,
       },
     });
   }

@@ -63,6 +63,9 @@ export class Branch extends BaseEntity {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ nullable: true })
+  maxEmployees: number;
+
   @Index('BRANCH_CITY_IDX')
   @ManyToOne(() => City, {
     nullable: true,

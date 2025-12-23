@@ -95,7 +95,7 @@ export class DBExceptionFilter implements ExceptionFilter {
     return {
       property: key,
       value,
-      code: ErrorCodes.UNIQUE_VOILATION,
+      code: ErrorCodes.FOREIGN_KEY_VIOLATION,
     };
   }
 }

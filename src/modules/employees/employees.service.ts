@@ -1,12 +1,15 @@
 import { DBService } from '@/database/db.service';
-import { Employee } from '@/database/entities/employee.entity';
-import { Injectable } from '@nestjs/common';
+import { Employee, EmployeeType } from '@/database/entities/employee.entity';
+import { Branch } from '@/database/entities/branch.entity';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { EmployeeDto } from './dto/employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { QueryOptions } from '@/common/query-options';
+import { ErrorCodes } from '@/common/error-codes';
+import { Role } from '../auth/role.model';
 
 @Injectable()
 export class EmployeesService extends DBService<
@@ -18,11 +21,40 @@ export class EmployeesService extends DBService<
   constructor(
     @InjectRepository(Employee)
     protected repository: Repository<Employee>,
+    @InjectRepository(Branch)
+    private branchRepository: Repository<Branch>,
   ) {
     super(repository);
   }
 
   async create(data: CreateEmployeeDto) {
+    // Check if branch has a maximum employee limit
+    if (data.branch?.id) {
+      const branch = await this.branchRepository.findOne({
+        where: { id: data.branch.id },
+        select: ['id', 'maxEmployees'],
+      });
+
+      if (branch?.maxEmployees) {
+        // Count current employees for this branch
+        const currentEmployeeCount = await this.repository.count({
+          where: { branch: { id: data.branch.id } },
+        });
+
+        if (currentEmployeeCount >= branch.maxEmployees) {
+          throw new BadRequestException([
+            {
+              property: 'branch',
+              code: ErrorCodes.MAX_EMPLOYEES_REACHED,
+              message: `Cannot add more employees. Branch has reached its maximum limit of ${branch.maxEmployees} employees.`,
+            },
+          ]);
+        }
+      }
+    }
+    if (data.type === EmployeeType.PROVIDER) {
+      data.roles = [...data.roles, Role.PROVIDER_USER];
+    }
     const employee = await super.create(data);
     delete employee.password;
     return employee;
@@ -35,8 +67,6 @@ export class EmployeesService extends DBService<
         qb.addSelect(`employee.${field}`);
       });
     }
-    // Include the customer relationship to fetch customerId
-    qb.leftJoinAndSelect('employee.customer', 'customer');
     // Include the branch relationship to fetch branchId
     qb.leftJoinAndSelect('employee.branch', 'branch');
     qb.leftJoinAndSelect('branch.provider', 'provider');
@@ -58,14 +88,6 @@ export class EmployeesService extends DBService<
     qb.leftJoin('branch.provider', 'provider');
     qb.where('provider.id = :providerId', { providerId }).andWhere(
       'employee.type = "provider"',
-    );
-    return await super.findAll(option, qb);
-  }
-  async findCustomerEmployees(customerId: string, option?: QueryOptions) {
-    const qb = this.repository.createQueryBuilder('employee');
-    qb.leftJoin('employee.customer', 'customer');
-    qb.where('customer.id = :customerId', { customerId }).andWhere(
-      'employee.type = "customer"',
     );
     return await super.findAll(option, qb);
   }

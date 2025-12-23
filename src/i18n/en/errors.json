@@ -10,6 +10,7 @@
   "NATIONAL_ID_ALREADY_EXISTS": "National ID already exists",
   "PASSPORT_ID_ALREADY_EXISTS": "Passport ID already exists",
   "UNIQUE_VOILATION": "Data already exists",
+  "FOREIGN_KEY_VIOLATION": "Referenced data does not exist",
   "MOBILE_NOT_FOUND": "Mobile number not found",
   "OTP_LIMIT_EXCEEDED": "OTP limit exceeded",
   "OTP_HOURLY_LIMIT_EXCEEDED": "OTP hourly limit exceeded",

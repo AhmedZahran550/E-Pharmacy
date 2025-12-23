@@ -6,7 +6,9 @@ import {
   IsBoolean,
   IsLatitude,
   IsLongitude,
+  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
 } from 'class-validator';
 
@@ -50,6 +52,11 @@ export class CreateBranchDto {
   @IsOptional()
   @IsBoolean()
   isAlwaysOpen?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  maxEmployees?: number;
 
   @IsOptional()
   @IsUUIDObj()

@@ -16,6 +16,7 @@ import { Role } from '../../auth/role.model';
 import { IsUUIDObj, UUIDObject } from '@/common/decorators/isObjId.decorator';
 import { Type } from 'class-transformer';
 import { Policy, PolicyAction, Subject } from '@/modules/auth/policies.types';
+import { EmployeeType } from '@/database/entities/employee.entity';
 
 export class UserPolicy implements Policy {
   @IsString()
@@ -49,11 +50,6 @@ export class CreateEmployeeDto {
   @IsOptional()
   password: string;
 
-  @IsOptional()
-  @IsString()
-  @Length(2, 20)
-  employeeId: string;
-
   @IsString()
   @Length(2, 20)
   @Matches(NAME_REGEX)
@@ -82,10 +78,6 @@ export class CreateEmployeeDto {
   mobile: string;
 
   @IsOptional()
-  @IsString()
-  nationalId: string;
-
-  @IsOptional()
   @IsBoolean()
   disabled?: boolean;
 
@@ -101,13 +93,12 @@ export class CreateEmployeeDto {
   @IsOptional()
   branch: UUIDObject;
 
-  @IsOptional()
-  @IsUUIDObj()
-  customer: UUIDObject;
-
   @ValidateNested({ each: true })
   @IsOptional()
   @Type(() => UserPolicy)
   @IsArray()
-  policies: UserPolicy[];
+  policies?: UserPolicy[];
+
+  @IsEnum(EmployeeType)
+  type: EmployeeType;
 }

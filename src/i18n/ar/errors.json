@@ -8,6 +8,7 @@
   "CONFLICT": "تعارض",
   "RESOURCE_NOT_FOUND": "المورد غير موجود",
   "UNIQUE_VOILATION": "البيانات موجودة بالفعل",
+  "FOREIGN_KEY_VIOLATION": "البيانات المرجعية غير موجودة",
   "NATIONAL_ID_ALREADY_EXISTS": "رقم الهوية الوطنية موجود بالفعل",
   "PASSPORT_ID_ALREADY_EXISTS": "رقم جواز السفر موجود بالفعل",
   "MOBILE_NOT_FOUND": "رقم الجوال غير موجود",
