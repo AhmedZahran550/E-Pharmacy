@@ -8,7 +8,7 @@ import { ApiQuery } from '@/common/decorators/pagination-query.decorator';
 import { EmployeeDto } from './dto/employee.dto';
 import { NearbyDoctorsDto } from './dto/nearby-doctors.dto';
 
-@ApiTags('Employees')
+@ApiTags('Doctors')
 @Public()
 @Controller('doctors')
 export class UserEmployeesController {
