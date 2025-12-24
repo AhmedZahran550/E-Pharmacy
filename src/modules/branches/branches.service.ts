@@ -1,30 +1,16 @@
 import { localizedQueryConfig } from '@/common/models/localized.name';
-import {
-  QueryConfig,
-  QueryOneOptions,
-  QueryOptions,
-} from '@/common/query-options';
+import { QueryConfig, QueryOptions } from '@/common/query-options';
 import { handleError } from '@/database/db.errors';
 import { DBService } from '@/database/db.service';
 import { Branch } from '@/database/entities/branch.entity';
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  Optional,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FilterOperator, paginate } from 'nestjs-paginate';
-import { DataSource, Repository } from 'typeorm';
 import { CreateBranchDto } from './dto/create-branch.dto';
-import { CacheService } from '@/common/cache.service';
 import { NearbyBranchesDto } from './dto/nearby-branches.dto';
-import { EmployeesService } from '../employees/employees.service';
-
 import { BranchRating } from '@/database/entities/branch-rating.entity';
 import { ErrorCodes } from '@/common/error-codes';
+import { Repository } from 'typeorm';
 
 export const BRANCHES_PAGINATION_CONFIG: QueryConfig<Branch> = {
   sortableColumns: [...localizedQueryConfig.sortableColumns],
@@ -46,8 +32,6 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
     repository: Repository<Branch>,
     @InjectRepository(BranchRating)
     private branchRatingRepository: Repository<BranchRating>,
-    private dataSource: DataSource,
-    private employeesService: EmployeesService,
   ) {
     super(repository, BRANCHES_PAGINATION_CONFIG); // 24 hours
   }
@@ -217,7 +201,7 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
               .andWhere('emp.is_online = true')
               .andWhere('emp.disabled = false')
               .andWhere('emp.locked = false'),
-          'availableDoctors',
+          'onLineDoctors',
         );
 
       // Apply additional where conditions if provided
@@ -241,7 +225,7 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       const branch = result.entities[0];
       return {
         ...branch,
-        availableDoctors: parseInt(result.raw[0]?.availableDoctors || '0'),
+        onLineDoctors: parseInt(result.raw[0]?.onLineDoctors || '0'),
       };
     } catch (error) {
       handleError(error);
@@ -264,7 +248,7 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
               .andWhere('emp.is_online = true')
               .andWhere('emp.disabled = false')
               .andWhere('emp.locked = false'),
-          'availableDoctors',
+          'onlineDoctors',
         );
 
       const result = await paginate<Branch>(options, qb, this.queryConfig);
@@ -273,8 +257,8 @@ export class BranchesService extends DBService<Branch, CreateBranchDto> {
       if (result.data && Array.isArray(result.data)) {
         result.data = (result.data as any[]).map((item, index) => ({
           ...item,
-          availableDoctors: parseInt(
-            (result as any).raw?.[index]?.availableDoctors || '0',
+          onLineDoctors: parseInt(
+            (result as any).raw?.[index]?.onLineDoctors || '0',
           ),
         }));
       }
