@@ -1,4 +1,11 @@
-import { IsNumber, IsOptional, IsBoolean, Min, Max } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  Min,
+  Max,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -47,4 +54,42 @@ export class NearbyDoctorsDto {
   @IsOptional()
   @IsBoolean()
   isOnline?: boolean;
+
+  // Pagination parameters
+  @ApiProperty({
+    description: 'Page number',
+    example: 1,
+    required: false,
+    default: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  page?: number;
+
+  @ApiProperty({
+    description: 'Items per page',
+    example: 20,
+    required: false,
+    default: 20,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  limit?: number;
+
+  @ApiProperty({
+    description: 'Search term',
+    example: 'doctor name',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  filter?: any;
+
+  @IsOptional()
+  sortBy?: any;
 }

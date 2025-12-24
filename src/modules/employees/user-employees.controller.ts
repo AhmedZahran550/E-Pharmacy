@@ -34,12 +34,7 @@ export class UserEmployeesController {
 
   @Get('nearby')
   async findNearbyDoctors(@Query() params: NearbyDoctorsDto) {
-    return this.employeesService.findNearbyDoctors(
-      params.lat,
-      params.lng,
-      params.radius || 10,
-      params.isOnline,
-    );
+    return this.employeesService.findNearbyDoctors(params);
   }
 
   @Post(':id/rating')

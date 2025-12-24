@@ -17,6 +17,7 @@ import { QueryOptions } from '@/common/query-options';
 import { ErrorCodes } from '@/common/error-codes';
 import { Role } from '../auth/role.model';
 import { FilterOperator, PaginateConfig } from 'nestjs-paginate';
+import { NearbyDoctorsDto } from './dto/nearby-doctors.dto';
 
 export const DOCTORS_PAGINATION_CONFIG: PaginateConfig<Employee> = {
   sortableColumns: ['firstName', 'lastName', 'isOnline'],
@@ -168,14 +169,20 @@ export class EmployeesService extends DBService<
   }
 
   /**
-   * Find nearby doctors based on location with optional online filter
+   * Find nearby doctors based on location with optional online filter and pagination
    */
-  async findNearbyDoctors(
-    lat: number,
-    lng: number,
-    radius: number = 10,
-    isOnline?: boolean,
-  ) {
+  async findNearbyDoctors(params: NearbyDoctorsDto) {
+    const {
+      lat,
+      lng,
+      radius = 10,
+      isOnline,
+      page,
+      limit,
+      search,
+      filter,
+    } = params;
+
     const radiusMeters = radius * 1000;
 
     let qb = this.repository
@@ -196,7 +203,7 @@ export class EmployeesService extends DBService<
         { lat, lng, radius: radiusMeters },
       );
 
-    // Add distance calculation before select
+    // Add distance calculation
     qb = qb.addSelect(
       `ST_Distance(
         branch.location,
@@ -205,7 +212,31 @@ export class EmployeesService extends DBService<
       'distance',
     );
 
-    // Now add the select for specific fields
+    // Apply search if provided
+    if (search) {
+      qb = qb.andWhere(
+        `(employee.firstName ILIKE :search OR employee.lastName ILIKE :search)`,
+        { search: `%${search}%` },
+      );
+    }
+
+    // Apply filters if provided
+    if (filter) {
+      Object.entries(filter).forEach(([key, value]) => {
+        if (key === 'branch.id') {
+          qb = qb.andWhere(`branch.id = :branchId`, { branchId: value });
+        } else if (key === 'gender') {
+          qb = qb.andWhere(`employee.gender = :gender`, { gender: value });
+        }
+      });
+    }
+
+    // Apply online filter if specified
+    if (isOnline !== undefined) {
+      qb = qb.andWhere('employee.isOnline = :isOnline', { isOnline });
+    }
+
+    // Add the select for specific fields
     qb = qb
       .select([
         'employee.id',
@@ -238,17 +269,34 @@ export class EmployeesService extends DBService<
       )
       .orderBy('distance', 'ASC');
 
-    // Apply online filter if specified
-    if (isOnline !== undefined) {
-      qb = qb.andWhere('employee.isOnline = :isOnline', { isOnline });
-    }
+    // Get pagination params
+    const currentPage = page || 1;
+    const itemsPerPage = Math.min(limit || 20, 100);
+    const skip = (currentPage - 1) * itemsPerPage;
 
+    // Get total count
+    const total = await qb.getCount();
+
+    // Apply pagination and execute
+    qb = qb.skip(skip).take(itemsPerPage);
     const result = await qb.getRawAndEntities();
 
-    return result.entities.map((employee, index) => ({
+    // Map to clean response structure
+    const data = result.entities.map((employee, index) => ({
       ...employee,
       distance: parseFloat(result.raw[index]?.distance || '0'),
     }));
+
+    // Return with nestjs-paginate compatible format
+    return {
+      data,
+      meta: {
+        itemsPerPage,
+        totalItems: total,
+        currentPage,
+        totalPages: Math.ceil(total / itemsPerPage),
+      },
+    };
   }
 
   /**
