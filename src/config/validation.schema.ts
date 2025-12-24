@@ -38,6 +38,17 @@ export const configSchema = z.object({
   DB_PORT: numberFromString.default(5432),
 
   POINTS_TO_BALANCE_CONVERTION_RATE: numberFromString,
+
+  // Firebase
+  FIREBASE_PROJECT_ID: z
+    .string()
+    .min(1, { error: 'FIREBASE_PROJECT_ID is required' }),
+  FIREBASE_PRIVATE_KEY: z
+    .string()
+    .min(1, { error: 'FIREBASE_PRIVATE_KEY is required' }),
+  FIREBASE_CLIENT_EMAIL: z
+    .string()
+    .email({ message: 'FIREBASE_CLIENT_EMAIL must be a valid email' }),
 });
 
 // Optionally, define the TypeScript type for the validated config

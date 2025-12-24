@@ -1,0 +1,12 @@
+# Firebase Configuration
+# Add these environment variables to your .env file
+
+# Firebase Project ID (from Firebase Console → Project Settings)
+FIREBASE_PROJECT_ID=your-project-id
+
+# Firebase Client Email (from service account JSON)
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
+
+# Firebase Private Key (from service account JSON - wrap in quotes and keep \n as literal \n)
+# Example: "-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----\n"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n"

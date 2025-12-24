@@ -1,4 +1,4 @@
-import { PushNotificationsService } from '@/common/pushNotifications.service';
+import { PushNotificationsService } from '../push-notifications/push-notifications.service';
 import { QueryConfig } from '@/common/query-options';
 import { DBService } from '@/database/db.service';
 import { Notification } from '@/database/entities/notification.entity';
