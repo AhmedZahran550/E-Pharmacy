@@ -11,18 +11,17 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Paginate } from 'nestjs-paginate';
 import { QueryOptions } from '@/common/query-options';
 import { EmployeesService } from './employees.service';
-import { Public } from '../auth/decorators/public.decorator';
 import { ApiQuery } from '@/common/decorators/pagination-query.decorator';
 import { EmployeeDto } from './dto/employee.dto';
 import { NearbyDoctorsDto } from './dto/nearby-doctors.dto';
 import { RateDoctorDto } from './dto/rate-doctor.dto';
 import { AuthUser } from '../auth/decorators/auth-user.decorator';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
-import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.model';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @ApiTags('Doctors')
-@Public()
+@Roles(Role.USER, Role.APP_USER)
 @Controller('doctors')
 export class UserEmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
@@ -43,8 +42,7 @@ export class UserEmployeesController {
     );
   }
 
-  @Post(':id/rate')
-  @Roles(Role.USER, Role.APP_USER)
+  @Post(':id/rating')
   @ApiOperation({
     summary: 'Rate a doctor',
     description: 'Allow users to rate a doctor once with a rating from 0-5',

@@ -1,12 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsNumber,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-  ValidateIf,
-} from 'class-validator';
+import { IsNumber, IsString, Max, Min, ValidateIf } from 'class-validator';
 
 export class RateDoctorDto {
   @ApiProperty({
@@ -28,7 +21,5 @@ export class RateDoctorDto {
   })
   @ValidateIf((o) => o.rating < 5)
   @IsString()
-  @ValidateIf((o) => o.rating >= 5)
-  @IsOptional()
   notes?: string;
 }

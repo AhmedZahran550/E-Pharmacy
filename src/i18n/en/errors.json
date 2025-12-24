@@ -114,5 +114,6 @@
   "MEDICAL_PROFILE_NOT_FOUND": "Medical profile not found.",
   "FAMILY_MEMBER_NOT_FOUND": "Family member not found.",
   "CANNOT_DELETE_PRINCIPAL": "Cannot delete the principal family member.",
-  "FAMILY_MEMBER_UNAUTHORIZED": "You don't have permission to manage this family member."
+  "FAMILY_MEMBER_UNAUTHORIZED": "You don't have permission to manage this family member.",
+  "DUPLICATE_RATING": "You have already rated this doctor."
 }
