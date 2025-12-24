@@ -297,17 +297,8 @@ export class EmployeesService extends DBService<
       });
     }
 
-    // Calculate new average rating
-    const currentAverage = Number(doctor.averageRating) || 0;
-    const currentRaters = doctor.totalRaters || 0;
-    const totalRatingSum = currentAverage * currentRaters;
-    const newTotalSum = totalRatingSum + ratingValue;
-    const newRaters = currentRaters + 1;
-    const newAverage = newTotalSum / newRaters;
-
-    // Create rating record and update doctor in a transaction
+    // Create rating record - trigger will automatically update doctor's average
     await this.dataSource.transaction(async (manager) => {
-      // Create rating record
       const rating = manager.create(DoctorRating, {
         user: { id: userId } as User,
         employee: { id: doctorId } as Employee,
@@ -315,27 +306,8 @@ export class EmployeesService extends DBService<
         notes: notes,
       });
       await manager.save(rating);
-
-      // Update doctor's average rating and rater count
-      await manager.update(Employee, doctorId, {
-        averageRating: newAverage,
-        totalRaters: newRaters,
-      });
     });
 
-    // Return updated doctor
-    return await this.repository.findOne({
-      where: { id: doctorId },
-      relations: ['branch', 'branch.provider', 'branch.city'],
-      select: [
-        'id',
-        'firstName',
-        'lastName',
-        'gender',
-        'isOnline',
-        'averageRating',
-        'totalRaters',
-      ],
-    });
+    return;
   }
 }
