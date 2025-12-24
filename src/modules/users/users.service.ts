@@ -113,20 +113,13 @@ export class UsersService extends DBService<
 
   async findUserMembers(query: QueryOptions, id: string) {
     try {
-      const dbUser = await this.repository.findOne({
+      const dbUser = await this.repository.findOneOrFail({
         where: { id },
       });
-
-      if (!dbUser) {
-        throw new NotFoundException({
-          message: 'User not found',
-          code: ErrorCodes.USER_NOT_FOUND,
-        });
-      }
-
       const qb = this.repository
         .createQueryBuilder('user')
-        .where('user.familyId = :familyId', { familyId: dbUser.familyId });
+        .where('user.familyId = :familyId', { familyId: dbUser.familyId })
+        .andWhere('user.id != :id', { id });
       return this.findAll(query, qb);
     } catch (error) {
       handleError(error);

@@ -13,6 +13,7 @@
 
   "isString": "Invalid value",
   "isEnum": "Must be a valid option",
+  "isDateString": "Must be a valid date",
 
   "MOBILE_NOT_FOUND": "Mobile number not found",
   "ISEGYPTIANNATIONALIDCONSTRAINT": "Must be an Egyptian National ID compatible with birth date",

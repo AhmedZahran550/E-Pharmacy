@@ -111,5 +111,8 @@
   "EMAIL_ALREADY_EXIST": "البريد الإلكتروني موجود بالفعل.",
   "BRANCH_ALREADY_RATED": "لقد قمت بتقييم هذا الفرع بالفعل.",
   "BRANCH_NOT_FOUND": "الفرع غير موجود.",
-  "MEDICAL_PROFILE_NOT_FOUND": "الملف الطبي غير موجود."
+  "MEDICAL_PROFILE_NOT_FOUND": "الملف الطبي غير موجود.",
+  "FAMILY_MEMBER_NOT_FOUND": "فرد العائلة غير موجود.",
+  "CANNOT_DELETE_PRINCIPAL": "لا يمكن حذف العضو الرئيسي للعائلة.",
+  "FAMILY_MEMBER_UNAUTHORIZED": "ليس لديك صلاحية لإدارة هذا الفرد من العائلة."
 }
