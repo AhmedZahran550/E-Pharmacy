@@ -29,6 +29,14 @@ export class PushNotificationsService {
 
     const messaging = this.firebaseService.getMessaging();
 
+    // Check if Firebase is initialized
+    if (!messaging) {
+      this.logger.warn(
+        'Firebase is not initialized. Skipping push notification.',
+      );
+      return;
+    }
+
     // Prepare the message
     const message: admin.messaging.MulticastMessage = {
       tokens: validTokens,

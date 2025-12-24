@@ -20,7 +20,10 @@ export class FirebaseService implements OnModuleInit {
       );
 
       if (!projectId || !privateKey || !clientEmail) {
-        throw new Error('Firebase credentials are not properly configured');
+        this.logger.warn(
+          'Firebase credentials are not configured. Push notifications will be disabled.',
+        );
+        return; // Exit gracefully without initializing
       }
 
       admin.initializeApp({
@@ -34,14 +37,18 @@ export class FirebaseService implements OnModuleInit {
       this.messaging = admin.messaging();
       this.logger.log('Firebase Admin SDK initialized successfully');
     } catch (error) {
-      this.logger.error('Failed to initialize Firebase Admin SDK', error.stack);
-      throw error;
+      this.logger.error(
+        'Failed to initialize Firebase Admin SDK. Push notifications will be disabled.',
+        error.stack,
+      );
+      // Don't throw - allow app to start without Firebase
     }
   }
 
-  getMessaging(): admin.messaging.Messaging {
+  getMessaging(): admin.messaging.Messaging | null {
     if (!this.messaging) {
-      throw new Error('Firebase messaging is not initialized');
+      this.logger.warn('Firebase messaging is not initialized');
+      return null;
     }
     return this.messaging;
   }
