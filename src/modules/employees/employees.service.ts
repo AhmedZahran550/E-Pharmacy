@@ -75,19 +75,6 @@ export class EmployeesService extends DBService<
       },
     } as any);
 
-    // Increment branch doctorsCount if employee is a doctor
-    if (
-      data.branch?.id &&
-      data.roles?.includes(Role.PROVIDER_DOCTOR) &&
-      data.type === EmployeeType.PROVIDER
-    ) {
-      await this.branchRepository.increment(
-        { id: data.branch.id },
-        'doctorsCount',
-        1,
-      );
-    }
-
     delete employee.password;
     return employee;
   }
@@ -129,30 +116,8 @@ export class EmployeesService extends DBService<
   }
 
   async delete(id: string, options?: any): Promise<void> {
-    // First, fetch the employee to check if they're a doctor
-    const employee = await this.repository.findOne({
-      where: {
-        id,
-        ...options?.where,
-      },
-      relations: ['branch'],
-    });
-
-    // Call parent delete
+    // Call parent delete - doctorsCount is handled by database trigger
     await super.softDelete(id, options);
-
-    // Decrement branch doctorsCount if employee was a doctor
-    if (
-      employee?.branch?.id &&
-      employee.roles?.includes(Role.PROVIDER_DOCTOR) &&
-      employee.type === EmployeeType.PROVIDER
-    ) {
-      await this.branchRepository.decrement(
-        { id: employee.branch.id },
-        'doctorsCount',
-        1,
-      );
-    }
   }
 
   /**
