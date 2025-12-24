@@ -13,7 +13,7 @@ import {
   Post,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { FamilyMembersService } from './family-members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateFamilyMemberDto } from './dto/update-family-member.dto';
@@ -25,6 +25,12 @@ export class FamilyMembersController {
   constructor(private familyMembersService: FamilyMembersService) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Add family member',
+    description: 'Add a new family member to user account',
+  })
+  @ApiResponse({ status: 201, description: 'Family member added successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
   async addFamilyMember(
     @AuthUser() user: AuthUserDto,
     @Body() dto: CreateMemberDto,
@@ -33,6 +39,14 @@ export class FamilyMembersController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'List family members',
+    description: 'Get paginated list of user family members',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Family members retrieved successfully',
+  })
   async listFamilyMembers(
     @AuthUser() user: AuthUserDto,
     @Paginate() query: QueryOptions,
@@ -41,6 +55,17 @@ export class FamilyMembersController {
   }
 
   @Patch(':id')
+  @ApiOperation({
+    summary: 'Update family member',
+    description: 'Update family member information',
+  })
+  @ApiParam({ name: 'id', description: 'Family member UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Family member updated successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({ status: 404, description: 'Family member not found' })
   async updateFamilyMember(
     @AuthUser() user: AuthUserDto,
     @UuidParam('id', ParseUUIDPipe) id: string,
@@ -50,6 +75,16 @@ export class FamilyMembersController {
   }
 
   @Delete(':id')
+  @ApiOperation({
+    summary: 'Delete family member',
+    description: 'Remove family member from account',
+  })
+  @ApiParam({ name: 'id', description: 'Family member UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Family member deleted successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Family member not found' })
   async deleteFamilyMember(
     @AuthUser() user: AuthUserDto,
     @UuidParam('id', ParseUUIDPipe) id: string,

@@ -13,7 +13,13 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import fileInterceptorOptions from '@/common/interceptors/file-interceptor-options';
 import { FileRequiredPipe } from '@/common/pipes/file-required.pipe';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { AuthUser } from '../auth/decorators/auth-user.decorator';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { ProfileService } from './profile.service';
@@ -30,18 +36,49 @@ export class ProfileController {
     private usersService: UsersService,
     private profileService: ProfileService,
   ) {}
+
   @Get()
+  @ApiOperation({
+    summary: 'Get user profile',
+    description: "Retrieve the authenticated user's profile information",
+  })
+  @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
   getProfile(@AuthUser() user: AuthUserDto) {
     return this.profileService.getUserProfile(user.id);
   }
 
   @Patch()
+  @ApiOperation({
+    summary: 'Update profile',
+    description: 'Update user profile information',
+  })
+  @ApiResponse({ status: 200, description: 'Profile updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
   updateProfile(@AuthUser() user: AuthUserDto, @Body() body: UpdateUserDto) {
     return this.profileService.updateProfile(user, body);
   }
 
   @UseInterceptors(FileInterceptor('image', fileInterceptorOptions))
   @Patch('photo')
+  @ApiOperation({
+    summary: 'Upload profile photo',
+    description: 'Upload or update user profile photo',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          description: 'Profile image file',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Photo uploaded successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid file format or size' })
   async uploadFile(
     @UploadedFile(FileRequiredPipe) file: Express.Multer.File,
     @AuthUser() user: AuthUserDto,
@@ -50,13 +87,26 @@ export class ProfileController {
   }
 
   @Delete()
+  @ApiOperation({
+    summary: 'Delete account',
+    description: 'Soft delete user account',
+  })
+  @ApiResponse({ status: 200, description: 'Account deleted successfully' })
   public async deleteAccount(@AuthUser() user: AuthUserDto) {
     return this.usersService.softDelete(user.id);
   }
 
   @Post('notifications')
-  public async getProfilePhoto(
-    @AuthUser() profileNotificationsDto: ProfileNotificationsDto,
+  @ApiOperation({
+    summary: 'Toggle notifications',
+    description: 'Enable or disable user notifications',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification settings updated successfully',
+  })
+  public async toggleNotifications(
+    @Body() profileNotificationsDto: ProfileNotificationsDto,
     @AuthUser() user: AuthUserDto,
   ) {
     return this.profileService.toggleNotifications(
@@ -66,6 +116,11 @@ export class ProfileController {
   }
 
   @Patch('preferences')
+  @ApiOperation({
+    summary: 'Update preferences',
+    description: 'Update user preferences settings',
+  })
+  @ApiResponse({ status: 200, description: 'Preferences updated successfully' })
   public async updatePreferences(
     @AuthUser() user: AuthUserDto,
     @Body() updatePreferencesDto: UpdatePreferencesDto,
@@ -77,6 +132,11 @@ export class ProfileController {
   }
 
   @Patch('preferences/language')
+  @ApiOperation({
+    summary: 'Update language',
+    description: 'Change user interface language preference',
+  })
+  @ApiResponse({ status: 200, description: 'Language updated successfully' })
   public async updateLanguage(
     @AuthUser() user: AuthUserDto,
     @Body('language') language: string,
@@ -85,6 +145,14 @@ export class ProfileController {
   }
 
   @Patch('preferences/notifications')
+  @ApiOperation({
+    summary: 'Update notification preferences',
+    description: 'Update push and email notification settings',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification preferences updated successfully',
+  })
   public async updateNotificationPreferences(
     @AuthUser() user: AuthUserDto,
     @Body()

@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query, Post, Body } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { BranchesService } from './branches.service';
 import { ApiQuery } from '@/common/decorators/pagination-query.decorator';
 import { Paginate } from 'nestjs-paginate';
@@ -21,6 +21,11 @@ export class BranchesController {
 
   @ApiQuery(CreateBranchDto)
   @Get()
+  @ApiOperation({
+    summary: 'List all branches',
+    description: 'Get paginated list of all pharmacy branches',
+  })
+  @ApiResponse({ status: 200, description: 'Branches retrieved successfully' })
   // Cache TTL: 86400 seconds (24 hours)
   @Cacheable({ key: 'branches:all', ttl: 86400 })
   findAll(@Paginate() query: QueryOptions) {
@@ -28,6 +33,14 @@ export class BranchesController {
   }
 
   @Get('nearby')
+  @ApiOperation({
+    summary: 'Find nearby branches',
+    description: 'Get branches near specified location by latitude/longitude',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Nearby branches retrieved successfully',
+  })
   // Cache TTL: 600 seconds (10 minutes)
   @Cacheable({ key: 'branches:nearby:{{lat}}:{{lng}}:{{radius}}', ttl: 600 })
   findNearby(@Query() params: NearbyBranchesDto) {
@@ -35,6 +48,13 @@ export class BranchesController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Get branch details',
+    description: 'Retrieve detailed information about a specific branch',
+  })
+  @ApiParam({ name: 'id', description: 'Branch UUID' })
+  @ApiResponse({ status: 200, description: 'Branch retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Branch not found' })
   // Cache TTL: 3600 seconds (1 hour)
   @Cacheable({ key: 'branch:{{id}}', ttl: 3600 })
   findOne(@Param('id') id: string) {
@@ -43,6 +63,17 @@ export class BranchesController {
 
   @Post(':id/rating')
   @Roles(Role.APP_USER)
+  @ApiOperation({
+    summary: 'Rate branch',
+    description: 'Submit rating and feedback for a branch',
+  })
+  @ApiParam({ name: 'id', description: 'Branch UUID' })
+  @ApiResponse({ status: 201, description: 'Rating submitted successfully' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid rating data or already rated',
+  })
+  @ApiResponse({ status: 404, description: 'Branch not found' })
   async rateBranch(
     @Param('id') id: string,
     @Body() ratingDto: RateBranchDto,

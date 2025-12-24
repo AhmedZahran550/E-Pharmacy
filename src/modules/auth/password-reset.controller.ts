@@ -7,7 +7,7 @@ import {
   Put,
   Param,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Public } from './decorators/public.decorator';
 import {
   RequestPasswordResetDto,
@@ -23,6 +23,15 @@ export class PasswordResetController {
   @Public()
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Request password reset',
+    description: 'Request a password reset link to be sent to email',
+  })
+  @ApiResponse({
+    status: 201,
+    description:
+      'Reset request processed (always returns success for security)',
+  })
   async createResetRequest(@Body() dto: RequestPasswordResetDto) {
     // Always return same response regardless of email existence
     try {
@@ -39,6 +48,13 @@ export class PasswordResetController {
   @Public()
   @Put(':token')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reset password',
+    description: 'Reset password using reset token',
+  })
+  @ApiParam({ name: 'token', description: 'Password reset token from email' })
+  @ApiResponse({ status: 200, description: 'Password successfully reset' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
   async resetPassword(
     @Param('token') token: string,
     @Body() dto: Pick<ResetPasswordDto, 'newPassword' | 'client_id'>,

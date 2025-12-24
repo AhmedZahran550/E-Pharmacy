@@ -20,7 +20,9 @@ import { Role } from '../auth/role.model';
 import { AuthUser } from '../auth/decorators/auth-user.decorator';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { EmployeeType } from '@/database/entities/employee.entity';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
+@ApiTags('Provider - Employees')
 @Controller('provider/employees')
 @Roles(Role.PROVIDER_ADMIN)
 export class ProviderEmployeesController {
@@ -28,6 +30,14 @@ export class ProviderEmployeesController {
 
   @ApiQuery(CreateEmployeeDto)
   @Get()
+  @ApiOperation({
+    summary: 'List provider employees',
+    description: 'Get paginated list of provider employees',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Employee list retrieved successfully',
+  })
   async findAll(
     @Paginate() query: QueryOptions,
     @AuthUser() user: AuthUserDto,
@@ -36,6 +46,12 @@ export class ProviderEmployeesController {
   }
 
   @Post()
+  @ApiOperation({
+    summary: 'Create provider employee',
+    description: 'Create a new employee (doctor) for the provider',
+  })
+  @ApiResponse({ status: 201, description: 'Employee created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
   async create(
     @Body() createEmployeeDto: CreateEmployeeDto,
     @AuthUser() user: AuthUserDto,
@@ -50,6 +66,13 @@ export class ProviderEmployeesController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Get provider employee',
+    description: 'Retrieve provider employee by ID',
+  })
+  @ApiParam({ name: 'id', description: 'Employee UUID' })
+  @ApiResponse({ status: 200, description: 'Employee retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Employee not found' })
   findOne(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
     return this.employeesService.findOne({
       where: {
@@ -61,6 +84,14 @@ export class ProviderEmployeesController {
   }
 
   @Patch(':id')
+  @ApiOperation({
+    summary: 'Update provider employee',
+    description: 'Update provider employee information',
+  })
+  @ApiParam({ name: 'id', description: 'Employee UUID' })
+  @ApiResponse({ status: 200, description: 'Employee updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({ status: 404, description: 'Employee not found' })
   update(
     @Param('id') id: string,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
@@ -76,6 +107,13 @@ export class ProviderEmployeesController {
   }
 
   @Delete(':id')
+  @ApiOperation({
+    summary: 'Delete provider employee',
+    description: 'Remove provider employee account',
+  })
+  @ApiParam({ name: 'id', description: 'Employee UUID' })
+  @ApiResponse({ status: 200, description: 'Employee deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Employee not found' })
   remove(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
     return this.employeesService.delete(id, {
       where: {

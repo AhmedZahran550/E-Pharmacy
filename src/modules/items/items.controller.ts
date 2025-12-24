@@ -16,7 +16,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Paginate } from 'nestjs-paginate';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/role.model';
@@ -32,6 +32,11 @@ export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Get()
+  @ApiOperation({
+    summary: 'List all items',
+    description: 'Get paginated list of all available items/services',
+  })
+  @ApiResponse({ status: 200, description: 'Items retrieved successfully' })
   @Cacheable({ key: 'item:all', ttl: 2592000 }) // 1 month
   @ApiQuery(CreateServiceDto)
   findAll(@Paginate() query: QueryOptions) {

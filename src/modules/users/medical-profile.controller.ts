@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { Role } from '@/modules/auth/role.model';
 import { AuthUser } from '../auth/decorators/auth-user.decorator';
@@ -28,12 +28,30 @@ export class MedicalProfileController {
   // }
 
   @Get()
+  @ApiOperation({
+    summary: 'Get medical profile',
+    description: 'Retrieve user medical profile information',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Medical profile retrieved successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Medical profile not found' })
   async getMedicalProfile(@AuthUser() user: AuthUserDto) {
     const profile = await this.medicalProfileService.getMedicalProfile(user.id);
     return profile;
   }
 
   @Patch()
+  @ApiOperation({
+    summary: 'Update medical profile',
+    description: 'Update user medical profile information',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Medical profile updated successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
   async updateMedicalProfile(
     @AuthUser() user: AuthUserDto,
     @Body() updateMedicalProfileDto: UpdateMedicalProfileDto,
@@ -46,6 +64,14 @@ export class MedicalProfileController {
   }
 
   @Delete()
+  @ApiOperation({
+    summary: 'Delete medical profile',
+    description: 'Remove user medical profile',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Medical profile deleted successfully',
+  })
   async deleteMedicalProfile(@AuthUser() user: AuthUserDto) {
     await this.medicalProfileService.deleteMedicalProfile(user.id);
     return { success: true };
