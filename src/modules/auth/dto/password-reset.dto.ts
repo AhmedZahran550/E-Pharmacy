@@ -1,16 +1,12 @@
 import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
-
-export enum ClientType {
-  USER = 'user',
-  EMPLOYEE = 'employee',
-}
+import { Client } from './credentials.dto';
 
 export class RequestPasswordResetDto {
   @IsEmail()
   email: string;
 
-  @IsEnum(ClientType)
-  client_id: ClientType;
+  @IsEnum(Client)
+  client_id: Client;
 }
 
 export class ResetPasswordDto {
@@ -21,6 +17,6 @@ export class ResetPasswordDto {
   @MinLength(8)
   newPassword: string;
 
-  @IsEnum(ClientType)
-  client_id: ClientType;
+  @IsEnum(Client)
+  client_id: Client;
 }

@@ -12,6 +12,7 @@ import { EmailService } from '@/common/mailer/email.service';
 import { UsersService } from '../users/users.service';
 import { User } from '@/database/entities/user.entity';
 import { Employee } from '@/database/entities/employee.entity';
+import { Client } from './dto/credentials.dto';
 
 @Injectable()
 export class PasswordResetService {
@@ -31,9 +32,9 @@ export class PasswordResetService {
     private userRepository: Repository<User>,
   ) {}
 
-  async requestReset(email: string, clientType: 'user' | 'employee') {
+  async requestReset(email: string, clientType: Client) {
     let entity: User | Employee;
-    let isUser = clientType === 'user';
+    let isUser = clientType === Client.MOBILE_APP;
 
     if (isUser) {
       // Find user
@@ -98,16 +99,12 @@ export class PasswordResetService {
     return { message: 'Reset instructions sent to your email' };
   }
 
-  async resetPassword(
-    token: string,
-    newPassword: string,
-    clientType: 'user' | 'employee',
-  ) {
+  async resetPassword(token: string, newPassword: string, clientType: Client) {
     try {
       await this.jwtService.verifyAsync(token, {
         secret: this.config.get('jwt.resetToken.secret'),
       });
-      const isUser = clientType === 'user';
+      const isUser = clientType === Client.MOBILE_APP;
       // Find and validate token with appropriate relations
       const resetToken = await this.tokenRepository.findOne({
         where: { token, used: false },
