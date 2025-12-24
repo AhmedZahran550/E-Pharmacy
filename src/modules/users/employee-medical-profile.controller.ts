@@ -1,5 +1,5 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { Role } from '@/modules/auth/role.model';
 import { ProfileService } from './profile.service';
@@ -14,6 +14,16 @@ export class EmployeeMedicalProfileController {
   constructor(private readonly medicalProfileService: MedicalProfileService) {}
 
   @Get(':userId/medical-profile')
+  @ApiOperation({
+    summary: 'Get user medical profile',
+    description:
+      'Retrieve medical profile for a specific user (branch employees only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Medical profile retrieved successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Medical profile not found' })
   async getMedicalProfile(
     @Param('userId') userId: string,
     @AuthUser() user: AuthUserDto,

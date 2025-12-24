@@ -1,5 +1,5 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ProvidersService } from './providers.service';
 import { ApiQuery } from '@/common/decorators/pagination-query.decorator';
 import { CreateProviderDto } from './dto/create-provider.dto';
@@ -17,6 +17,11 @@ export class ProvidersController {
 
   @ApiQuery(CreateProviderDto)
   @Get()
+  @ApiOperation({
+    summary: 'List providers',
+    description: 'Get paginated list of all pharmacy providers',
+  })
+  @ApiResponse({ status: 200, description: 'Providers retrieved successfully' })
   // Cache TTL: 86400 seconds (24 hours)
   @Cacheable({ key: 'providers:all', ttl: 86400 })
   findAll(@Paginate() query: QueryOptions) {
@@ -24,6 +29,12 @@ export class ProvidersController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Get provider',
+    description: 'Retrieve detailed information about a specific provider',
+  })
+  @ApiResponse({ status: 200, description: 'Provider retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Provider not found' })
   // Cache TTL: 3600 seconds (1 hour)
   @Cacheable({ key: 'provider:{{id}}', ttl: 3600 })
   findOne(@Param('id') id: string) {
