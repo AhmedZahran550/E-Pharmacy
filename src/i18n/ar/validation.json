@@ -10,7 +10,7 @@
   "MIN": "قيمة غير صالحة",
   "MAX": "قيمة غير صالحة",
 
-  "matches": "يجب أن يتطابق مع {constraints.0}",
+  "matches": "التنسيق غير صالح",
   "required": "مطلوب",
   "equals": "يجب أن يكون مساوياً لـ {constraints.0}",
   "contains": "يجب أن يحتوي على {constraints.0}",

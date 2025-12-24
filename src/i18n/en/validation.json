@@ -11,6 +11,7 @@
   "MIN": "Invalid Length",
   "MAX": "Invalid Length",
 
+  "matches": "Invalid format",
   "isString": "Invalid value",
   "isEnum": "Must be a valid option",
   "isDateString": "Must be a valid date",
