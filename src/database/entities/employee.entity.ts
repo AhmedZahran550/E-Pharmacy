@@ -93,6 +93,12 @@ export class Employee extends BaseEntity {
   @DateColumn({ nullable: true })
   lastActiveAt?: Date;
 
+  @Column({ type: 'decimal', precision: 2, scale: 1, default: 0 })
+  averageRating: number;
+
+  @Column({ type: 'int', default: 0 })
+  totalRaters: number;
+
   @ManyToOne(() => Branch, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn()
   branch: Branch;

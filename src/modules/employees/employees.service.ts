@@ -1,9 +1,15 @@
 import { DBService } from '@/database/db.service';
 import { Employee, EmployeeType } from '@/database/entities/employee.entity';
 import { Branch } from '@/database/entities/branch.entity';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { DoctorRating } from '@/database/entities/doctor-rating.entity';
+import { User } from '@/database/entities/user.entity';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { EmployeeDto } from './dto/employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
@@ -36,6 +42,7 @@ export class EmployeesService extends DBService<
     protected repository: Repository<Employee>,
     @InjectRepository(Branch)
     private branchRepository: Repository<Branch>,
+    private dataSource: DataSource,
   ) {
     super(repository, DOCTORS_PAGINATION_CONFIG);
   }
@@ -139,6 +146,8 @@ export class EmployeesService extends DBService<
         'employee.lastName',
         'employee.gender',
         'employee.isOnline',
+        'employee.averageRating',
+        'employee.totalRaters',
         'branch.id',
         'branch.name_en',
         'branch.name_ar',
@@ -204,6 +213,8 @@ export class EmployeesService extends DBService<
         'employee.lastName',
         'employee.gender',
         'employee.isOnline',
+        'employee.averageRating',
+        'employee.totalRaters',
         'branch.id',
         'branch.name_en',
         'branch.name_ar',
@@ -238,5 +249,93 @@ export class EmployeesService extends DBService<
       ...employee,
       distance: parseFloat(result.raw[index]?.distance || '0'),
     }));
+  }
+
+  /**
+   * Rate a doctor (one rating per user)
+   */
+  async rateDoctor(
+    doctorId: string,
+    userId: string,
+    ratingValue: number,
+    notes?: string,
+  ): Promise<Employee> {
+    // Verify doctor exists and is actually a doctor
+    const doctor = await this.repository.findOne({
+      where: {
+        id: doctorId,
+        type: EmployeeType.PROVIDER,
+        disabled: false,
+        locked: false,
+      },
+      select: ['id', 'averageRating', 'totalRaters', 'roles'],
+    });
+
+    if (!doctor) {
+      throw new NotFoundException('Doctor not found');
+    }
+
+    // Verify employee has doctor role
+    if (!doctor.roles?.includes(Role.PROVIDER_DOCTOR as any)) {
+      throw new BadRequestException('Employee is not a doctor');
+    }
+
+    const doctorRatingRepo = this.dataSource.getRepository(DoctorRating);
+
+    // Check if user already rated this doctor
+    const existingRating = await doctorRatingRepo.findOne({
+      where: {
+        user: { id: userId },
+        employee: { id: doctorId },
+      },
+    });
+
+    if (existingRating) {
+      throw new BadRequestException({
+        message: 'You have already rated this doctor',
+        code: ErrorCodes.DUPLICATE_RATING,
+      });
+    }
+
+    // Calculate new average rating
+    const currentAverage = Number(doctor.averageRating) || 0;
+    const currentRaters = doctor.totalRaters || 0;
+    const totalRatingSum = currentAverage * currentRaters;
+    const newTotalSum = totalRatingSum + ratingValue;
+    const newRaters = currentRaters + 1;
+    const newAverage = newTotalSum / newRaters;
+
+    // Create rating record and update doctor in a transaction
+    await this.dataSource.transaction(async (manager) => {
+      // Create rating record
+      const rating = manager.create(DoctorRating, {
+        user: { id: userId } as User,
+        employee: { id: doctorId } as Employee,
+        rating: ratingValue,
+        notes: notes,
+      });
+      await manager.save(rating);
+
+      // Update doctor's average rating and rater count
+      await manager.update(Employee, doctorId, {
+        averageRating: newAverage,
+        totalRaters: newRaters,
+      });
+    });
+
+    // Return updated doctor
+    return await this.repository.findOne({
+      where: { id: doctorId },
+      relations: ['branch', 'branch.provider', 'branch.city'],
+      select: [
+        'id',
+        'firstName',
+        'lastName',
+        'gender',
+        'isOnline',
+        'averageRating',
+        'totalRaters',
+      ],
+    });
   }
 }
