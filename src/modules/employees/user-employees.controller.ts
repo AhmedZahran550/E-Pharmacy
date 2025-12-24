@@ -28,11 +28,32 @@ export class UserEmployeesController {
 
   @ApiQuery(EmployeeDto)
   @Get()
+  @ApiOperation({
+    summary: 'List doctors',
+    description: 'Get paginated list of all doctors with filters and search',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Doctors retrieved successfully',
+  })
   async findDoctors(@Paginate() query: QueryOptions) {
     return this.employeesService.findDoctors(query);
   }
 
   @Get('nearby')
+  @ApiOperation({
+    summary: 'Find nearby doctors',
+    description:
+      'Get doctors near specified location with pagination, search, and filters',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Nearby doctors retrieved successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid coordinates or parameters',
+  })
   async findNearbyDoctors(@Query() params: NearbyDoctorsDto) {
     return this.employeesService.findNearbyDoctors(params);
   }
