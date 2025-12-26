@@ -30,4 +30,18 @@ export class OrderItem extends BaseEntity<OrderItem> {
 
   @DecimalColumn({ nullable: true })
   totalPrice: number;
+
+  @Column({ type: 'text', nullable: true })
+  doctorInstructions: string; // Education from doctor
+
+  @Column({ type: 'text', nullable: true })
+  medicationTiming: string; // When to take (morning, evening, etc.)
+
+  @Column({ type: 'jsonb', nullable: true })
+  schedule: {
+    frequency: string; // ONCE_DAILY, TWICE_DAILY, etc.
+    times: string[]; // ["08:00", "20:00"]
+    duration: number; // days
+    instructions: string;
+  }; // Medication schedule for this item
 }
