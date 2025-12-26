@@ -18,6 +18,8 @@ import { ErrorCodes } from '@/common/error-codes';
 import { Role } from '../auth/role.model';
 import { FilterOperator, PaginateConfig } from 'nestjs-paginate';
 import { NearbyDoctorsDto } from './dto/nearby-doctors.dto';
+import { StorageService } from '@/common/storage.service';
+import * as path from 'path';
 
 export const DOCTORS_PAGINATION_CONFIG: PaginateConfig<Employee> = {
   sortableColumns: ['firstName', 'lastName', 'isOnline'],
@@ -44,6 +46,7 @@ export class EmployeesService extends DBService<
     @InjectRepository(Branch)
     private branchRepository: Repository<Branch>,
     private dataSource: DataSource,
+    private storageService: StorageService,
   ) {
     super(repository, DOCTORS_PAGINATION_CONFIG);
   }
@@ -357,5 +360,38 @@ export class EmployeesService extends DBService<
     });
 
     return;
+  }
+
+  /**
+   * Update employee profile photo
+   */
+  async updateEmployeePhoto(file: Express.Multer.File, employeeId: string) {
+    try {
+      const fileName = `employee-${employeeId}`;
+      const extension = path.extname(file.originalname).toLowerCase();
+      const filePath = `${fileName}${extension}`;
+      const obj = await this.storageService.saveFile(
+        file,
+        filePath,
+        'employees',
+      );
+
+      const updatedEmployee = await this.repository.manager.transaction(
+        async (manager) => {
+          const employee = await manager.findOneOrFail(Employee, {
+            where: { id: employeeId },
+          });
+          employee.imageUrl = obj.url;
+          const savedEmployee = await manager.save(employee);
+          delete savedEmployee.password;
+          return savedEmployee;
+        },
+      );
+
+      return { imageUrl: updatedEmployee.imageUrl };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 }

@@ -99,6 +99,9 @@ export class Employee extends BaseEntity {
   @Column({ type: 'int', default: 0 })
   totalRaters: number;
 
+  @Column({ nullable: true })
+  imageUrl?: string;
+
   @ManyToOne(() => Branch, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn()
   branch: Branch;
