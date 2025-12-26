@@ -41,6 +41,8 @@ import { AppController } from './app.controller';
 import { LogsModule } from './modules/logs/logs.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ItemsModule } from './modules/items/items.module';
+import { ConsultationsModule } from './modules/consultations/consultations.module';
+import { MedicationSchedulesModule } from './modules/medication-schedules/medication-schedules.module';
 const envFolderPath = `${__dirname}/config/env`;
 
 const envFilePath = [
@@ -113,6 +115,8 @@ const envFilePath = [
     NotificationsModule,
     LogsModule,
     ItemsModule,
+    ConsultationsModule,
+    MedicationSchedulesModule,
   ],
   providers: [
     {
