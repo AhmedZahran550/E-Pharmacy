@@ -1,20 +1,15 @@
-import { RelatedEntity } from '@/database/entities/notification.entity';
-import { NotificationType } from '@/modules/notifications/dto/notification.enum';
-import { IsEnum, IsObject, IsString, IsUUID } from 'class-validator';
+import { IsObject, IsString } from 'class-validator';
 
 export class CreatePushNotificationDto {
-  @IsUUID()
-  recipientId: string;
-
-  @IsObject()
-  relatedEntity: RelatedEntity;
+  @IsString({ each: true })
+  tokens: string[];
 
   @IsString()
   title: string;
 
   @IsString()
-  message: string;
+  body: string;
 
-  @IsEnum(NotificationType)
-  type: NotificationType;
+  @IsObject()
+  data?: Record<string, unknown>;
 }

@@ -1,4 +1,8 @@
 import { Paginate, QueryOptions } from '@/common/query-options';
+import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
+import { Roles } from '@/modules/auth/decorators/roles.decorator';
+import { AuthUserDto } from '@/modules/auth/dto/auth-user.dto';
+import { Role } from '@/modules/auth/role.model';
 import { NotificationsService } from '@/modules/notifications/notifications.service';
 import {
   Body,
@@ -9,64 +13,86 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { CreateNotificationDto } from './dto/create-notification.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 
-@ApiTags('Admin - Notifications')
+@ApiTags('User Notifications')
 @Controller('notifications')
+@Roles(Role.APP_USER)
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  @Post()
-  @ApiOperation({
-    summary: 'Create notification',
-    description: 'Create a new app notification (admin)',
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Notification created successfully',
-  })
-  create(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationsService.createAppNotification(
-      createNotificationDto,
-    );
-  }
-
   @Get()
   @ApiOperation({
-    summary: 'List all notifications',
-    description: 'Get paginated list of app notifications (admin)',
+    summary: 'List user notifications',
+    description:
+      'Get paginated list of notifications for the authenticated user',
   })
   @ApiResponse({
     status: 200,
     description: 'Notifications retrieved successfully',
   })
-  findAll(@Paginate() query: QueryOptions) {
-    return this.notificationsService.app.findAll(query);
+  async findAll(
+    @Paginate() query: QueryOptions,
+    @AuthUser() user: AuthUserDto,
+  ) {
+    query.filter = { ...query.filter, recipient_id: `$eq:${user.id}` };
+    return await this.notificationsService.app.findAll(query);
   }
 
   @Get(':id')
   @ApiOperation({
     summary: 'Get notification',
-    description: 'Get notification by ID (admin)',
+    description: 'Retrieve a specific notification by ID',
   })
-  @ApiParam({ name: 'id', description: 'Notification UUID' })
   @ApiResponse({
     status: 200,
     description: 'Notification retrieved successfully',
   })
   @ApiResponse({ status: 404, description: 'Notification not found' })
-  findOne(@Param('id') id: string) {
-    return this.notificationsService.app.findById(id);
+  findOne(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
+    return this.notificationsService.app.find({
+      where: { id, recipient: { id: user.id } },
+    });
+  }
+
+  @Delete(':id')
+  @ApiOperation({
+    summary: 'Delete notification',
+    description: 'Delete a specific notification for the authenticated user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification deleted successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Notification not found' })
+  async delete(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
+    console.log('Deleting notification with id:', id, 'for user:', user.id);
+    return this.notificationsService.app.delete(id, {
+      where: { recipient: { id: user.id } },
+    });
+  }
+
+  @Delete()
+  @ApiOperation({
+    summary: 'Delete all notifications',
+    description: 'Delete all notifications for the authenticated user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'All notifications deleted successfully',
+  })
+  async deleteAll(@AuthUser() user: AuthUserDto) {
+    return this.notificationsService.app.deleteBy({
+      recipient: { id: user.id },
+    });
   }
 
   @Patch(':id')
   @ApiOperation({
     summary: 'Update notification',
-    description: 'Update notification by ID (admin)',
+    description: 'Update notification status (e.g., mark as read)',
   })
-  @ApiParam({ name: 'id', description: 'Notification UUID' })
   @ApiResponse({
     status: 200,
     description: 'Notification updated successfully',
@@ -75,22 +101,12 @@ export class NotificationsController {
   update(
     @Param('id') id: string,
     @Body() updateNotificationDto: UpdateNotificationDto,
+    @AuthUser() user: AuthUserDto,
   ) {
-    return this.notificationsService.app.update(id, updateNotificationDto);
-  }
-
-  @Delete(':id')
-  @ApiOperation({
-    summary: 'Delete notification',
-    description: 'Delete notification by ID (admin)',
-  })
-  @ApiParam({ name: 'id', description: 'Notification UUID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Notification deleted successfully',
-  })
-  @ApiResponse({ status: 404, description: 'Notification not found' })
-  remove(@Param('id') id: string) {
-    return this.notificationsService.app.remove(id);
+    return this.notificationsService.app.update(id, updateNotificationDto, {
+      where: {
+        recipient: { id: user.id },
+      },
+    });
   }
 }
