@@ -25,7 +25,7 @@ import { Exclude } from 'class-transformer';
 import { hmacHashing } from '@/common/hmac-hashing';
 import { MedicalProfile } from './medical-profile.entity';
 import { Consultation } from './consultation.entity';
-import { MedicationSchedule } from './medication-schedule.entity';
+import { MedicineSchedule } from './medicine-schedule.entity';
 import { ServiceRequest } from './service-request.entity';
 
 export const USER_EMAIL_IDX = 'user_email_idx';
@@ -269,8 +269,8 @@ export class User extends BaseEntity {
   @OneToMany(() => Consultation, (consultation) => consultation.user)
   consultations: Consultation[];
 
-  @OneToMany(() => MedicationSchedule, (schedule) => schedule.user)
-  medicationSchedules: MedicationSchedule[];
+  @OneToMany(() => MedicineSchedule, (schedule) => schedule.user)
+  medicineSchedules: MedicineSchedule[];
 
   @OneToMany(() => ServiceRequest, (serviceRequest) => serviceRequest.user)
   serviceRequests: ServiceRequest[];

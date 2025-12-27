@@ -101,7 +101,7 @@ export class ServiceRequestsService {
       await queryRunner.commitTransaction();
 
       // 4. Notify Doctors
-      this.notifyDoctors(savedRequest, dto.branchId);
+      this.notifyDoctors(savedRequest, dto.branch.id);
 
       return savedRequest;
     } catch (error) {

@@ -12,7 +12,7 @@ import { Employee } from './employee.entity';
 import { Branch } from './branch.entity';
 import { Order } from './order.entity';
 import { ConsultationMessage } from './consultation-message.entity';
-import { MedicationSchedule } from './medication-schedule.entity';
+import { MedicineSchedule } from './medicine-schedule.entity';
 import { DateColumn } from '@/common/decorators/date-column.decorator';
 import { ServiceRequest } from './service-request.entity';
 
@@ -114,8 +114,8 @@ export class Consultation extends BaseEntity {
   @OneToMany(() => Order, (order) => order.consultation)
   orders: Order[];
 
-  @OneToMany(() => MedicationSchedule, (schedule) => schedule.consultation)
-  medicationSchedules: MedicationSchedule[];
+  @OneToMany(() => MedicineSchedule, (schedule) => schedule.consultation)
+  medicineSchedules: MedicineSchedule[];
 
   @OneToOne(
     () => ServiceRequest,

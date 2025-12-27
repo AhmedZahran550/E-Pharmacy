@@ -15,10 +15,10 @@ export enum FrequencyType {
   CUSTOM = 'CUSTOM',
 }
 
-@Entity('medication_schedules')
-export class MedicationSchedule extends BaseEntity {
+@Entity('medicine_schedules')
+export class MedicineSchedule extends BaseEntity {
   @Column({ type: 'varchar', length: 255 })
-  medicationName: string; // Item name at time of schedule creation
+  medicineName: string; // Item name at time of schedule creation
 
   @Column({ type: 'text', nullable: true })
   instructions: string;
@@ -54,7 +54,7 @@ export class MedicationSchedule extends BaseEntity {
   notes: string;
 
   // Relationships
-  @ManyToOne(() => User, (user) => user.medicationSchedules)
+  @ManyToOne(() => User, (user) => user.medicineSchedules)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
@@ -70,7 +70,7 @@ export class MedicationSchedule extends BaseEntity {
 
   @ManyToOne(
     () => Consultation,
-    (consultation) => consultation.medicationSchedules,
+    (consultation) => consultation.medicineSchedules,
     {
       nullable: true,
     },

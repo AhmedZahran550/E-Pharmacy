@@ -9,16 +9,16 @@ import {
   IsUUID,
   MaxLength,
 } from 'class-validator';
-import { FrequencyType } from '@/database/entities/medication-schedule.entity';
+import { FrequencyType } from '@/database/entities/medicine-schedule.entity';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateMedicationScheduleDto {
+export class CreateMedicineScheduleDto {
   @ApiProperty({
-    description: 'Name of the medication',
+    description: 'Name of the medicine',
   })
   @IsString()
   @MaxLength(255)
-  medicationName: string;
+  medicineName: string;
 
   @ApiPropertyOptional({
     description: 'Instructions for taking the medication',

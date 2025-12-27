@@ -8,7 +8,7 @@ import { Consultation } from '@/database/entities/consultation.entity';
 import { ConsultationMessage } from '@/database/entities/consultation-message.entity';
 import { ConsultationQueue } from '@/database/entities/consultation-queue.entity';
 import { Employee } from '@/database/entities/employee.entity';
-import { MedicationSchedulesModule } from '../medication-schedules/medication-schedules.module';
+import { MedicineSchedulesModule } from '../medicine-schedules/medicine-schedules.module';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { MedicationSchedulesModule } from '../medication-schedules/medication-sc
       ConsultationQueue,
       Employee,
     ]),
-    MedicationSchedulesModule,
+    MedicineSchedulesModule,
   ],
   controllers: [
     ConsultationsController,

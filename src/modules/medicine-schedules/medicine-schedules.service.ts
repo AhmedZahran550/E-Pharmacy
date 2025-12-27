@@ -5,22 +5,22 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MedicationSchedule } from '@/database/entities/medication-schedule.entity';
-import { CreateMedicationScheduleDto } from './dto/create-medication-schedule.dto';
-import { UpdateMedicationScheduleDto } from './dto/update-medication-schedule.dto';
+import { MedicineSchedule } from '@/database/entities/medicine-schedule.entity';
+import { CreateMedicineScheduleDto } from './dto/create-medicine-schedule.dto';
+import { UpdateMedicineScheduleDto } from './dto/update-medicine-schedule.dto';
 
 @Injectable()
-export class MedicationSchedulesService {
+export class MedicineSchedulesService {
   constructor(
-    @InjectRepository(MedicationSchedule)
-    private scheduleRepository: Repository<MedicationSchedule>,
+    @InjectRepository(MedicineSchedule)
+    private scheduleRepository: Repository<MedicineSchedule>,
   ) {}
 
   async create(
     userId: string,
-    dto: CreateMedicationScheduleDto,
+    dto: CreateMedicineScheduleDto,
     consultationId?: string,
-  ): Promise<MedicationSchedule> {
+  ): Promise<MedicineSchedule> {
     const schedule = this.scheduleRepository.create({
       ...dto,
       userId,
@@ -33,7 +33,7 @@ export class MedicationSchedulesService {
   async findUserSchedules(
     userId: string,
     activeOnly?: boolean,
-  ): Promise<MedicationSchedule[]> {
+  ): Promise<MedicineSchedule[]> {
     const where: any = { userId };
     if (activeOnly) {
       where.isActive = true;
@@ -46,7 +46,7 @@ export class MedicationSchedulesService {
     });
   }
 
-  async findOne(id: string, userId: string): Promise<MedicationSchedule> {
+  async findOne(id: string, userId: string): Promise<MedicineSchedule> {
     const schedule = await this.scheduleRepository.findOne({
       where: { id, userId },
       relations: ['item', 'consultation'],
@@ -62,8 +62,8 @@ export class MedicationSchedulesService {
   async update(
     id: string,
     userId: string,
-    dto: UpdateMedicationScheduleDto,
-  ): Promise<MedicationSchedule> {
+    dto: UpdateMedicineScheduleDto,
+  ): Promise<MedicineSchedule> {
     const schedule = await this.findOne(id, userId);
 
     Object.assign(schedule, dto);
@@ -77,7 +77,7 @@ export class MedicationSchedulesService {
     await this.scheduleRepository.remove(schedule);
   }
 
-  async getTodaySchedules(userId: string): Promise<MedicationSchedule[]> {
+  async getTodaySchedules(userId: string): Promise<MedicineSchedule[]> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

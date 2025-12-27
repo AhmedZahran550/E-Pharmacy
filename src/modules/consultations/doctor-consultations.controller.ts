@@ -19,13 +19,13 @@ import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { Employee } from '@/database/entities/employee.entity';
 import { ConsultationsService } from './consultations.service';
-import { MedicationSchedulesService } from '../medication-schedules/medication-schedules.service';
+import { MedicineSchedulesService } from '../medicine-schedules/medicine-schedules.service';
 import { CompleteConsultationDto } from './dto/complete-consultation.dto';
 import { ToggleAvailabilityDto } from './dto/toggle-availability.dto';
-import { CreateMedicationScheduleDto } from '../medication-schedules/dto/create-medication-schedule.dto';
+import { CreateMedicineScheduleDto } from '../medicine-schedules/dto/create-medicine-schedule.dto';
 import { Consultation } from '@/database/entities/consultation.entity';
 import { ConsultationMessage } from '@/database/entities/consultation-message.entity';
-import { MedicationSchedule } from '@/database/entities/medication-schedule.entity';
+import { MedicineSchedule } from '@/database/entities/medicine-schedule.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from '@/modules/auth/role.model';
@@ -41,7 +41,7 @@ import { ConsultationSseController } from './consultation-sse.controller';
 export class DoctorConsultationsController {
   constructor(
     private readonly consultationsService: ConsultationsService,
-    private readonly medicationSchedulesService: MedicationSchedulesService,
+    private readonly medicineSchedulesService: MedicineSchedulesService,
     private readonly sseController: ConsultationSseController,
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
@@ -147,18 +147,18 @@ export class DoctorConsultationsController {
     return { success: true };
   }
 
-  @Post(':id/medication-schedule')
-  @ApiOperation({ summary: 'Create medication schedule for user' })
-  @ApiResponse({ status: 201, description: 'Medication schedule created' })
-  async createMedicationSchedule(
+  @Post(':id/medicine-schedule')
+  @ApiOperation({ summary: 'Create medicine schedule for user' })
+  @ApiResponse({ status: 201, description: 'Medicine schedule created' })
+  async createMedicineSchedule(
     @AuthUser() doctor: Employee,
     @Param('id') consultationId: string,
-    @Body() dto: CreateMedicationScheduleDto,
-  ): Promise<MedicationSchedule> {
+    @Body() dto: CreateMedicineScheduleDto,
+  ): Promise<MedicineSchedule> {
     const consultation =
       await this.consultationsService.getConsultation(consultationId);
 
-    return await this.medicationSchedulesService.create(
+    return await this.medicineSchedulesService.create(
       consultation.userId,
       dto,
       consultationId,

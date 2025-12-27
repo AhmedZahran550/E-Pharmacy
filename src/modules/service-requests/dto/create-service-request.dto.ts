@@ -1,3 +1,4 @@
+import { IsUUIDObj, UUIDObject } from '@/common/decorators/isObjId.decorator';
 import { ServiceRequestType } from '@/database/entities/service-request.entity';
 import { Type } from 'class-transformer';
 import {
@@ -25,7 +26,7 @@ export class SelectedItemDto {
 export class ManualItemDto {
   @IsString()
   @IsNotEmpty()
-  medicationName: string;
+  medicineName: string;
 
   @IsNumber()
   @IsOptional()
@@ -37,9 +38,8 @@ export class ManualItemDto {
 }
 
 export class CreateServiceRequestDto {
-  @IsUUID()
-  @IsNotEmpty()
-  branchId: string;
+  @IsUUIDObj()
+  branch: UUIDObject;
 
   @IsEnum(ServiceRequestType)
   @IsNotEmpty()
