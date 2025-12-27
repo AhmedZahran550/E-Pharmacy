@@ -43,6 +43,7 @@ export class FamilyMembersController {
   })
   @ApiResponse({ status: 201, description: 'Family member added successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @Post()
   async addFamilyMember(
     @AuthUser() user: AuthUserDto,
     @Body() dto: CreateMemberDto,
