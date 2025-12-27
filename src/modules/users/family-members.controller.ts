@@ -11,9 +11,20 @@ import {
   Get,
   Patch,
   Post,
+  UseInterceptors,
+  UploadedFile,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiConsumes,
+} from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import fileInterceptorOptions from '@/common/interceptors/file-interceptor-options';
+import { FileRequiredPipe } from '@/common/pipes/file-required.pipe';
 import { FamilyMembersService } from './family-members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateFamilyMemberDto } from './dto/update-family-member.dto';
@@ -24,18 +35,43 @@ import { UpdateFamilyMemberDto } from './dto/update-family-member.dto';
 export class FamilyMembersController {
   constructor(private familyMembersService: FamilyMembersService) {}
 
-  @Post()
+  @UseInterceptors(FileInterceptor('image', fileInterceptorOptions))
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Add family member',
     description: 'Add a new family member to user account',
   })
   @ApiResponse({ status: 201, description: 'Family member added successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @Post()
   async addFamilyMember(
     @AuthUser() user: AuthUserDto,
     @Body() dto: CreateMemberDto,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.familyMembersService.addFamilyMember(user.id, dto);
+    return this.familyMembersService.addFamilyMember(user.id, dto, file);
+  }
+
+  @Patch(':id/photo')
+  @UseInterceptors(FileInterceptor('image', fileInterceptorOptions))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: 'Update family member photo',
+    description: 'Update the profile photo of a family member',
+  })
+  @ApiParam({ name: 'id', description: 'Family member UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Family member photo updated successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid file or input' })
+  @ApiResponse({ status: 404, description: 'Family member not found' })
+  async updateFamilyMemberPhoto(
+    @AuthUser() user: AuthUserDto,
+    @UuidParam('id', ParseUUIDPipe) id: string,
+    @UploadedFile(FileRequiredPipe) file: Express.Multer.File,
+  ) {
+    return this.familyMembersService.updateFamilyMemberPhoto(user.id, id, file);
   }
 
   @Get()

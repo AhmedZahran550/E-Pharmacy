@@ -1,5 +1,6 @@
 import { ErrorCodes } from '@/common/error-codes';
 import { QueryOptions } from '@/common/query-options';
+import { StorageService } from '@/common/storage.service';
 import { User } from '@/database/entities/user.entity';
 import { handleError } from '@/database/db.errors';
 import {
@@ -9,7 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, Brackets } from 'typeorm';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateFamilyMemberDto } from './dto/update-family-member.dto';
 import { UsersService } from './users.service';
@@ -22,10 +23,37 @@ export class FamilyMembersService {
     private userRepository: Repository<User>,
     private usersService: UsersService,
     private medicalProfileService: MedicalProfileService,
+    private storageService: StorageService,
     private dataSource: DataSource,
   ) {}
 
-  async addFamilyMember(userId: string, dto: CreateMemberDto) {
+  private async getMemberIfAllowed(userId: string, memberId: string) {
+    // Get the family member
+    const member = await this.userRepository.findOne({
+      where: { id: memberId, ownerId: userId },
+    });
+
+    if (!member) {
+      throw new NotFoundException({
+        message: 'Family member not found',
+        code: ErrorCodes.FAMILY_MEMBER_NOT_FOUND,
+      });
+    }
+    return member;
+  }
+
+  private async uploadMemberPhoto(file: Express.Multer.File, memberId: string) {
+    const extension = file.originalname.split('.').pop().toLowerCase();
+    const fileName = `family-member-${memberId}.${extension}`;
+    const obj = await this.storageService.saveFile(file, fileName, 'profile');
+    return obj.url;
+  }
+
+  async addFamilyMember(
+    userId: string,
+    dto: CreateMemberDto,
+    file?: Express.Multer.File,
+  ) {
     const queryRunner = await this.usersService.startTransaction(
       this.dataSource,
     );
@@ -46,6 +74,43 @@ export class FamilyMembersService {
         await manager.save(principalUser);
       }
 
+      // Check for duplicates in the family (email or mobile)
+      if (dto.email || dto.mobile) {
+        const queryBuilder = manager.createQueryBuilder(User, 'user');
+        queryBuilder.where('user.familyId = :familyId', { familyId });
+        queryBuilder.andWhere(
+          new Brackets((qb) => {
+            if (dto.email && dto.mobile) {
+              qb.where('user.email = :email', { email: dto.email }).orWhere(
+                'user.mobile = :mobile',
+                { mobile: dto.mobile },
+              );
+            } else if (dto.email) {
+              qb.where('user.email = :email', { email: dto.email });
+            } else if (dto.mobile) {
+              qb.where('user.mobile = :mobile', { mobile: dto.mobile });
+            }
+          }),
+        );
+
+        const existingMember = await queryBuilder.getOne();
+
+        if (existingMember) {
+          if (dto.email && existingMember.email === dto.email) {
+            throw new BadRequestException({
+              message: 'Family member with this email already exists',
+              code: ErrorCodes.EMAIL_ALREADY_EXIST,
+            });
+          }
+          if (dto.mobile && existingMember.mobile === dto.mobile) {
+            throw new BadRequestException({
+              message: 'Family member with this mobile number already exists',
+              code: ErrorCodes.MOBILE_ALREADY_EXISTS,
+            });
+          }
+        }
+      }
+
       // Create the family member
       const member = manager.create(User, {
         ...dto,
@@ -56,6 +121,10 @@ export class FamilyMembersService {
         emailVerified: false,
         idVerified: false,
       });
+
+      if (file) {
+        member.photoUrl = await this.uploadMemberPhoto(file, member.id);
+      }
 
       const savedMember = await this.usersService.saveUser(
         member,
@@ -89,37 +158,7 @@ export class FamilyMembersService {
     dto: UpdateFamilyMemberDto,
   ) {
     try {
-      // Get the principal user to verify family ownership
-      const principalUser = await this.userRepository.findOne({
-        where: { id: userId },
-      });
-
-      if (!principalUser || !principalUser.familyId) {
-        throw new NotFoundException({
-          message: 'User not found or not part of a family',
-          code: ErrorCodes.USER_NOT_FOUND,
-        });
-      }
-
-      // Get the family member
-      const member = await this.userRepository.findOne({
-        where: { id: memberId },
-      });
-
-      if (!member) {
-        throw new NotFoundException({
-          message: 'Family member not found',
-          code: ErrorCodes.FAMILY_MEMBER_NOT_FOUND,
-        });
-      }
-
-      // Verify the member belongs to the user's family
-      if (member.familyId !== principalUser.familyId) {
-        throw new ForbiddenException({
-          message: "You don't have permission to manage this family member",
-          code: ErrorCodes.FAMILY_MEMBER_UNAUTHORIZED,
-        });
-      }
+      const member = await this.getMemberIfAllowed(userId, memberId);
 
       // Prevent updating critical fields
       delete dto['ownerId'];
@@ -134,29 +173,7 @@ export class FamilyMembersService {
 
   async deleteFamilyMember(userId: string, memberId: string) {
     try {
-      // Get the principal user to verify family ownership
-      const principalUser = await this.userRepository.findOne({
-        where: { id: userId },
-      });
-
-      if (!principalUser || !principalUser.familyId) {
-        throw new NotFoundException({
-          message: 'User not found or not part of a family',
-          code: ErrorCodes.USER_NOT_FOUND,
-        });
-      }
-
-      // Get the family member
-      const member = await this.userRepository.findOneOrFail({
-        where: { id: memberId },
-      });
-      // Verify the member belongs to the user's family
-      if (member.familyId !== principalUser.familyId) {
-        throw new ForbiddenException({
-          message: "You don't have permission to manage this family member",
-          code: ErrorCodes.FAMILY_MEMBER_UNAUTHORIZED,
-        });
-      }
+      const member = await this.getMemberIfAllowed(userId, memberId);
 
       // Prevent deleting the principal user
       if (member.is_principal) {
@@ -167,6 +184,20 @@ export class FamilyMembersService {
       }
 
       return this.usersService.softDelete(memberId);
+    } catch (error) {
+      handleError(error);
+    }
+  }
+
+  async updateFamilyMemberPhoto(
+    userId: string,
+    memberId: string,
+    file: Express.Multer.File,
+  ) {
+    try {
+      const member = await this.getMemberIfAllowed(userId, memberId);
+      const photoUrl = await this.uploadMemberPhoto(file, member.id);
+      return this.usersService.update(memberId, { photoUrl });
     } catch (error) {
       handleError(error);
     }
