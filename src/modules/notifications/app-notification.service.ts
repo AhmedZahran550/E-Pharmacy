@@ -49,6 +49,14 @@ export class AppNotificationService extends DBService<
     options?: { manager?: EntityManager },
   ): Promise<Notification> {
     // Save notification to database first
+    if (!createDto.title || !createDto.message) {
+      createDto.title = this.i18n.translate(
+        `notifications.${createDto.type}.title`,
+      );
+      createDto.message = this.i18n.translate(
+        `notifications.${createDto.type}.body`,
+      );
+    }
     const notification = await super.create(createDto, options);
 
     // Send push notification asynchronously (don't block notification creation)
@@ -126,7 +134,7 @@ export class AppNotificationService extends DBService<
       }
 
       // Send push notification with localized content
-      await this.pushNotificationsService.sendPushNotification(
+      this.pushNotificationsService.sendPushNotification(
         tokens,
         notification.title,
         notification.message,
@@ -138,7 +146,10 @@ export class AppNotificationService extends DBService<
       );
     } catch (error) {
       // Re-throw to be caught by the caller's catch block
-      throw error;
+      this.logger.error(
+        `Failed to send push notification for notification ${notification.id}`,
+        error.stack,
+      );
     }
   }
 }

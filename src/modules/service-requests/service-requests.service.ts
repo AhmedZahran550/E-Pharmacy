@@ -2,9 +2,10 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, In, Repository, LessThan } from 'typeorm';
 import {
   ServiceRequest,
   ServiceRequestStatus,
@@ -24,6 +25,11 @@ import { ErrorCodes } from '@/common/error-codes';
 import { ServiceRequestsSseService } from './service-requests-sse.service';
 import { LocalizationService } from '@/i18n/localization.service';
 import { NotificationChannel } from '@/database/entities/system-notification.entity';
+import {
+  NotificationType,
+  RelatedEntityType,
+} from '../notifications/dto/notification.enum';
+import { AuthUserDto } from '../auth/dto/auth-user.dto';
 
 @Injectable()
 export class ServiceRequestsService {
@@ -113,6 +119,78 @@ export class ServiceRequestsService {
     });
   }
 
+  async acceptRequest(requestId: string, doctor: AuthUserDto) {
+    if (!doctor.branchId) {
+      throw new BadRequestException('Doctor must belong to a branch');
+    }
+
+    const request = await this.serviceRequestRepository.findOneOrFail({
+      where: { id: requestId, branchId: doctor.branchId },
+      relations: ['user'],
+      lock: { mode: 'optimistic', version: 1 },
+    });
+
+    if (request.status !== ServiceRequestStatus.PENDING) {
+      throw new BadRequestException(
+        'Request is not in PENDING status and cannot be accepted',
+      );
+    }
+
+    // // Check max concurrent requests (assuming 5 for now)
+    // const activeRequestsCount = await this.serviceRequestRepository.count({
+    //   where: {
+    //     doctorId: doctor.id,
+    //     status: ServiceRequestStatus.REVIEWING,
+    //   },
+    // });
+
+    // const MAX_CONCURRENT_REQUESTS = 5;
+    // if (activeRequestsCount >= MAX_CONCURRENT_REQUESTS) {
+    //   throw new BadRequestException(
+    //     'You have reached the maximum number of concurrent requests',
+    //   );
+    // }
+
+    // Update Request
+    request.status = ServiceRequestStatus.REVIEWING;
+    request.doctor = { id: doctor.id } as any;
+    request.assignedAt = new Date();
+
+    const savedRequest = await this.serviceRequestRepository.save(request);
+
+    // Notify User
+    // 1. SSE
+    this.sseService.notifyServiceRequestUpdate(
+      request.id,
+      {
+        status: request.status,
+        doctor: {
+          id: doctor.id,
+          firstName: doctor.firstName,
+          lastName: doctor.lastName,
+        },
+      },
+      'doctor_assigned',
+    );
+    this.notificationsService.createAppNotification({
+      title: this.i18n.translate('notifications.DOCTOR_ASSIGNED.title', {
+        args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
+      }),
+      message: this.i18n.translate('notifications.DOCTOR_ASSIGNED.body', {
+        args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
+      }),
+      type: NotificationType.SERVICE_REQUEST_UPDATE,
+      recipient: { id: request.userId },
+      data: { serviceRequestId: request.id },
+      relatedEntity: {
+        type: RelatedEntityType.SERVICE_REQUEST,
+        id: request.id,
+      },
+      isRead: false,
+    });
+    return savedRequest;
+  }
+
   private async notifyDoctors(
     serviceRequest: ServiceRequest,
     branchId: string,
@@ -134,9 +212,7 @@ export class ServiceRequestsService {
         employeeId: In(doctorIds),
       },
     });
-
     const tokens = deviceTokens.map((dt) => dt.deviceToken);
-
     // 3. System Notification & Push
     await this.notificationsService.createSystemNotification({
       title: this.i18n.translate('notifications.NEW_SERVICE_REQUEST.title'),

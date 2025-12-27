@@ -20,4 +20,21 @@ export class ServiceRequestsSseService {
       })),
     );
   }
+
+  notifyServiceRequestUpdate(
+    requestId: string,
+    data: any,
+    type: string = 'service_request_update',
+  ) {
+    this.eventEmitter.emit(`request:${requestId}`, { data, type });
+  }
+
+  createRequestStream(requestId: string): Observable<MessageEvent> {
+    return fromEvent(this.eventEmitter, `request:${requestId}`).pipe(
+      map((payload: any) => ({
+        data: payload.data,
+        type: payload.type,
+      })),
+    );
+  }
 }

@@ -1,4 +1,12 @@
-import { Controller, Get, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Query,
+  Post,
+  Param,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -13,6 +21,7 @@ import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { Employee } from '@/database/entities/employee.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ServiceRequestsService } from './service-requests.service';
 import {
   ServiceRequest,
   ServiceRequestStatus,
@@ -28,6 +37,7 @@ export class DoctorServiceRequestsController {
   constructor(
     @InjectRepository(ServiceRequest)
     private serviceRequestRepository: Repository<ServiceRequest>,
+    private serviceRequestsService: ServiceRequestsService,
   ) {}
 
   @Get()
@@ -48,5 +58,15 @@ export class DoctorServiceRequestsController {
       },
       relations: ['user'],
     });
+  }
+
+  @Post(':requestId/accept')
+  @ApiOperation({ summary: 'Accept a service request' })
+  @ApiResponse({ status: 200, description: 'Request accepted' })
+  async acceptRequest(
+    @Param('requestId', ParseUUIDPipe) requestId: string,
+    @AuthUser() doctor: AuthUserDto,
+  ) {
+    return this.serviceRequestsService.acceptRequest(requestId, doctor);
   }
 }
