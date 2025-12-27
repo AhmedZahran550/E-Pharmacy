@@ -16,7 +16,7 @@ import {
 export class SelectedItemDto {
   @IsUUID()
   @IsNotEmpty()
-  itemId: string;
+  id: string;
 
   @IsNumber()
   @Min(1)

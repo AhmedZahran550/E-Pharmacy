@@ -59,7 +59,7 @@ export class ServiceRequestsService {
     try {
       // 1. Validate items if selected
       if (dto.selectedItems && dto.selectedItems.length > 0) {
-        const itemIds = dto.selectedItems.map((i) => i.itemId);
+        const itemIds = dto.selectedItems.map((i) => i.id);
         const items = await this.itemRepository.find({
           where: {
             id: In(itemIds),

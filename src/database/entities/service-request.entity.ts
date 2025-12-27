@@ -24,10 +24,9 @@ export enum ServiceRequestStatus {
 }
 
 export enum ServiceRequestType {
-  PRESCRIPTION_IMAGE = 'PRESCRIPTION_IMAGE',
-  ITEM_SELECTION = 'ITEM_SELECTION',
-  MANUAL_ENTRY = 'MANUAL_ENTRY',
-  MIXED = 'MIXED',
+  DELEVARY_ORDER = 'DELEVARY_ORDER',
+  PICKUP_ORDER = 'PICKUP_ORDER',
+  HOME_VISIT = 'HOME_VISIT',
 }
 
 @Entity('service_requests')
