@@ -1,4 +1,4 @@
-import { Column, Entity, Index, ManyToOne, Check } from 'typeorm';
+import { Column, Entity, Index, ManyToOne, Check, JoinColumn } from 'typeorm';
 import { BaseEntity } from './base.entity';
 import { User } from './user.entity';
 import { Employee } from './employee.entity';
@@ -28,11 +28,16 @@ export class DeviceToken extends BaseEntity {
     onDelete: 'CASCADE',
     nullable: true,
   })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ name: 'employee_id', type: 'uuid', nullable: true })
-  employeeId: string;
+  @Column({ type: 'uuid', nullable: true })
+  userId: string;
 
   @ManyToOne(() => Employee, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'employee_id' })
   employee: Employee;
+
+  @Column({ type: 'uuid', nullable: true })
+  employeeId: string;
 }
