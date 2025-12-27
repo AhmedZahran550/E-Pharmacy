@@ -10,7 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, Brackets } from 'typeorm';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateFamilyMemberDto } from './dto/update-family-member.dto';
 import { UsersService } from './users.service';
@@ -72,6 +72,43 @@ export class FamilyMembersService {
         principalUser.familyId = familyId;
         principalUser.is_principal = true;
         await manager.save(principalUser);
+      }
+
+      // Check for duplicates in the family (email or mobile)
+      if (dto.email || dto.mobile) {
+        const queryBuilder = manager.createQueryBuilder(User, 'user');
+        queryBuilder.where('user.familyId = :familyId', { familyId });
+        queryBuilder.andWhere(
+          new Brackets((qb) => {
+            if (dto.email && dto.mobile) {
+              qb.where('user.email = :email', { email: dto.email }).orWhere(
+                'user.mobile = :mobile',
+                { mobile: dto.mobile },
+              );
+            } else if (dto.email) {
+              qb.where('user.email = :email', { email: dto.email });
+            } else if (dto.mobile) {
+              qb.where('user.mobile = :mobile', { mobile: dto.mobile });
+            }
+          }),
+        );
+
+        const existingMember = await queryBuilder.getOne();
+
+        if (existingMember) {
+          if (dto.email && existingMember.email === dto.email) {
+            throw new BadRequestException({
+              message: 'Family member with this email already exists',
+              code: ErrorCodes.EMAIL_ALREADY_EXIST,
+            });
+          }
+          if (dto.mobile && existingMember.mobile === dto.mobile) {
+            throw new BadRequestException({
+              message: 'Family member with this mobile number already exists',
+              code: ErrorCodes.MOBILE_ALREADY_EXISTS,
+            });
+          }
+        }
       }
 
       // Create the family member
