@@ -1,9 +1,4 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ServiceRequest } from '@/database/entities/service-request.entity';
-import { Item } from '@/database/entities/item.entity';
-import { Employee } from '@/database/entities/employee.entity';
-import { DeviceToken } from '@/database/entities/device-token.entity';
+import { forwardRef, Module } from '@nestjs/common';
 import { ServiceRequestsService } from './service-requests.service';
 import { ServiceRequestsController } from './service-requests.controller';
 import { DoctorServiceRequestsController } from './doctor-service-requests.controller';
@@ -12,12 +7,15 @@ import { StorageService } from '@/common/storage.service';
 import { ServiceRequestsSseService } from './service-requests-sse.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PushNotificationsModule } from '../push-notifications/push-notifications.module';
+import { ItemsModule } from '../items/items.module';
+import { OrdersModule } from '../orders/orders.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ServiceRequest, Item, Employee, DeviceToken]),
+    forwardRef(() => OrdersModule),
     NotificationsModule,
     PushNotificationsModule,
+    forwardRef(() => ItemsModule),
   ],
   controllers: [
     ServiceRequestsController,
@@ -29,6 +27,6 @@ import { PushNotificationsModule } from '../push-notifications/push-notification
     StorageService,
     ServiceRequestsSseService,
   ],
-  exports: [ServiceRequestsService],
+  exports: [ServiceRequestsService, ServiceRequestsSseService],
 })
 export class ServiceRequestsModule {}

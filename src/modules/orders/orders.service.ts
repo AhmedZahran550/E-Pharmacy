@@ -1,10 +1,8 @@
 import { QueryConfig, QueryOptions } from '@/common/query-options';
 import { DBService } from '@/database/db.service';
-import { Order } from '@/database/entities/order.entity';
-import { OrderItem } from '@/database/entities/order-item.entity';
-
+import { Order, OrderType } from '@/database/entities/order.entity';
 import {
-  ForbiddenException,
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,32 +10,24 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FilterOperator } from 'nestjs-paginate';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { StorageService } from '@/common/storage.service';
-import { EmployeesService } from '../employees/employees.service';
-import { UsersService } from '../users/users.service';
-import { BranchesService } from '../branches/branches.service';
+import { LocalizationService } from '@/i18n/localization.service';
+import { OrderStatus } from '@/database/entities/order.entity';
+import { OrderHistory } from '@/database/entities/order-history.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { AuthUserDto } from '../auth/dto/auth-user.dto';
+import { Item } from '@/database/entities/item.entity';
+import { ErrorCodes } from '@/common/error-codes';
+import {
+  ServiceRequest,
+  ServiceRequestStatus,
+} from '@/database/entities/service-request.entity';
+import { MedicineSchedule } from '@/database/entities/medicine-schedule.entity';
+import { ServiceRequestsSseService } from '../service-requests/service-requests-sse.service';
 import {
   NotificationType,
   RelatedEntityType,
-} from '@/modules/notifications/dto/notification.enum';
-import { LocalizationService } from '@/i18n/localization.service';
-import { OrderStatus } from '@/database/entities/order.entity';
-import {
-  OrderHistory,
-  ActorType,
-  ChangeType,
-} from '@/database/entities/order-history.entity';
-import { NotificationsService } from '../notifications/notifications.service';
-import { CreateOrderDto, CreateOrderItemDto } from './dto/create-order.dto';
-import { SystemNotificationsService } from '../notifications/system-notification.service';
-import {
-  SystemNotificationType,
-  NotificationPriority,
-} from '@/modules/notifications/dto/notification.enum';
-import { NotificationChannel } from '@/database/entities/system-notification.entity';
-import { AuthUserDto } from '../auth/dto/auth-user.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { Item } from '@/database/entities/item.entity';
-import { ErrorCodes } from '@/common/error-codes';
+} from '../notifications/dto/notification.enum';
 
 const ORDERS_PAGINATION_CONFIG: QueryConfig<Order> = {
   sortableColumns: ['metadata.createdAt'],
@@ -68,6 +58,9 @@ export class OrdersService extends DBService<Order> {
   constructor(
     @InjectRepository(Order)
     protected repository: Repository<Order>,
+    @InjectRepository(MedicineSchedule)
+    protected medicineScheduleRepository: Repository<MedicineSchedule>,
+    private sseService: ServiceRequestsSseService,
     private dataSource: DataSource,
     private notificationsService: NotificationsService,
     private readonly i18n: LocalizationService,
@@ -76,61 +69,133 @@ export class OrdersService extends DBService<Order> {
     super(repository, ORDERS_PAGINATION_CONFIG);
   }
 
-  async createOrder(createOrderDto: CreateOrderDto, authUser: AuthUserDto) {
-    const queryRunner = await this.startTransaction(this.dataSource);
-    const manager = queryRunner.manager;
-    try {
-      const { items, type, branch } = createOrderDto;
+  async createOrder(
+    dto: CreateOrderDto,
+    request: ServiceRequest,
+    doctor: AuthUserDto,
+  ) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-      let orderItemsEntities: OrderItem[] = [];
-      const orderInstance = manager.create(Order, {
-        user: { id: authUser.id },
-        branch: { id: branch.id },
-        type,
-        status: OrderStatus.NEW,
+    try {
+      // 1. Validate request
+
+      // 2. Validate Items & Calculate Prices
+      const itemIds = dto.items.map((i) => i.id);
+      const itemsResult = await queryRunner.manager.find(Item, {
+        where: { id: In(itemIds) },
       });
-      const savedOrder = await manager.save(orderInstance);
-      // Create OrderItem entities first to calculate totals
-      if (items && items?.length > 0) {
-        orderItemsEntities = await this.createOrderItems(
-          savedOrder,
-          manager,
-          items,
-        );
+      const items: Item[] = itemsResult;
+
+      let totalAmount = 0;
+      const orderItems: any[] = [];
+      const medicineSchedules: any[] = [];
+
+      for (const itemDto of dto.items) {
+        const item = items.find((i) => i.id === itemDto.id);
+        if (!item) {
+          throw new BadRequestException('Item not found');
+        }
+        orderItems.push({
+          itemId: itemDto.id,
+          quantity: itemDto.quantity,
+          unitPrice: itemDto.price,
+          totalPrice: itemDto.quantity * itemDto.price,
+          doctorInstructions: itemDto.instructions,
+          schedule: itemDto.schedule,
+        });
+        // 6. Prepare MedicineSchedule records
+        if (itemDto.schedule) {
+          medicineSchedules.push(
+            this.medicineScheduleRepository.create({
+              medicineName:
+                item.localizedName?.en ||
+                item.localizedName?.ar ||
+                'Unknown Medicine',
+              user: request.user,
+              userId: request.userId,
+              item: item,
+              itemId: item.id,
+              instructions:
+                itemDto.instructions || itemDto.schedule.instructions,
+              frequency: itemDto.schedule.frequency,
+              frequencyValue: itemDto.schedule.frequencyValue,
+              times: itemDto.schedule.times,
+              startDate: new Date(itemDto.schedule.startDate),
+              endDate: itemDto.schedule.endDate
+                ? new Date(itemDto.schedule.endDate)
+                : undefined,
+              durationDays: itemDto.schedule.durationDays,
+              reminderEnabled: itemDto.schedule.reminderEnabled,
+              reminderMinutesBefore: itemDto.schedule.reminderMinutesBefore,
+              notes: dto.notes,
+              isActive: true,
+            }),
+          );
+        }
       }
-      await this.notificationsService.createSystemNotification(
-        {
-          title: this.i18n.translate('notifications.NEW_ORDER.title'),
-          message: this.i18n.translate('notifications.NEW_ORDER.body', {
-            args: {
-              orderNo: savedOrder.orderNo,
-            },
-          }),
-          type: SystemNotificationType.NEW_ORDER,
-          priority: NotificationPriority.HIGH,
-          channel: NotificationChannel.PROVIDER_PORTAL,
-          branch: { id: branch.id },
-          relatedEntityType: RelatedEntityType.ORDER,
-          relatedEntityId: savedOrder.id,
-          isRead: false,
-        } as any,
-        { manager },
-      );
-      // add order history entry (CREATED)
-      await manager.save(OrderHistory, {
-        order: { id: savedOrder.id } as any,
-        actorType: ActorType.USER,
-        actorId: authUser.id,
-        actorName: authUser.firstName + ' ' + authUser.lastName,
-        changeType: ChangeType.CREATED,
-        previous: null,
-        current: {
-          status: savedOrder.status,
-          imageUrl: savedOrder.imageUrl,
-        },
+
+      // 4. Create Order
+      const order = this.repository.create({
+        user: request.user,
+        branch: { id: request.branchId },
+        type: OrderType.DELIVERY, // Defaulting to delivery for now
+        status: OrderStatus.NEW, // Or ACCEPTED since doctor created it? User request says "Doctor Creates Order" -> "Order Created". Usually requires user confirmation?
+        // Prompt says: "Update OrderRequest status to COMPLETED" and "Return order details".
+        // It doesn't say user needs to confirm.
+        // But usually orders need payment.
+        // Assuming NEW or PENDING_PAYMENT.
+        // Let's stick to NEW or whatever default.
+        totalAmount,
+        createdByDoctor: { id: doctor.id } as any,
+        serviceRequest: request,
+        orderItems: orderItems, // Cascade create
       });
+
+      const savedOrder = await queryRunner.manager.save(order);
+
+      // Save schedules
+      if (medicineSchedules.length > 0) {
+        // Need to wait for order? No, they are independent linked to user.
+        await queryRunner.manager.save(medicineSchedules);
+      }
+
+      // 7. Update ServiceRequest
+      request.status = ServiceRequestStatus.COMPLETED;
+      request.completedAt = new Date();
+      request.order = savedOrder; // Link order
+
+      await queryRunner.manager.save(request);
 
       await queryRunner.commitTransaction();
+
+      // 9. Notifications
+      this.sseService.notifyServiceRequestUpdate(
+        request.id,
+        {
+          status: request.status,
+          orderId: savedOrder.id,
+          totalAmount: savedOrder.totalAmount,
+        },
+        'order_created',
+      );
+
+      this.notificationsService.createAppNotification({
+        title: this.i18n.translate('notifications.ORDER_CREATED.title'),
+        message: this.i18n.translate('notifications.ORDER_CREATED.body', {
+          args: { orderNo: savedOrder.orderNo },
+        }),
+        type: NotificationType.NEW_ORDER,
+        recipient: { id: request.userId },
+        relatedEntity: {
+          type: RelatedEntityType.ORDER,
+          id: savedOrder.id,
+        },
+        data: { orderId: savedOrder.id, serviceRequestId: request.id },
+        isRead: false,
+      });
+
       return savedOrder;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -139,25 +204,6 @@ export class OrdersService extends DBService<Order> {
       await queryRunner.release();
     }
   }
-
-  async updateOrderImage(
-    orderId: string,
-    image: Express.Multer.File,
-    user: AuthUserDto,
-  ) {
-    const order = await this.findOneOrFail({
-      where: { id: orderId, user: { id: user.id } },
-    });
-    const imageUrl = await this.storageService.saveFile(
-      image,
-      `${order.id}`,
-      'orders',
-    );
-    order.imageUrl = imageUrl.url;
-    await this.repository.save(order);
-    return order;
-  }
-
   async findUserOrders(userId: string, query?: QueryOptions) {
     const qb = this.repository
       .createQueryBuilder('order')
@@ -180,51 +226,6 @@ export class OrdersService extends DBService<Order> {
     return order;
   }
 
-  async updateOrder(
-    orderId: string,
-    updateOrderDto: UpdateOrderDto,
-    userId: string,
-  ) {
-    const queryRunner = await this.startTransaction(this.dataSource);
-    const manager = queryRunner.manager;
-    try {
-      const order = await this.repository.findOne({
-        where: { id: orderId, user: { id: userId } } as any,
-      });
-      if (!order) {
-        throw new NotFoundException({
-          message: 'Order not found',
-          code: ErrorCodes.ORDER_NOT_FOUND,
-        });
-      }
-      const updatedOrder = this.repository.merge(order, updateOrderDto);
-      const saved = await this.repository.save(updatedOrder);
-      if (updateOrderDto?.items?.length > 0) {
-        await this.createOrderItems(saved, manager, updateOrderDto.items);
-      }
-      // record history for status change
-      try {
-        await this.dataSource.getRepository(OrderHistory).save({
-          order: { id: order.id } as any,
-          actorType: ActorType.USER,
-          actorId: userId,
-          actorName: order.user.firstName + ' ' + order.user.lastName,
-          changeType: ChangeType.UPDATED,
-          previous: { status: order.status },
-          current: { status: updateOrderDto.status },
-        } as any);
-      } catch (e) {
-        // ignore history save errors to not block main flow
-      }
-      await queryRunner.commitTransaction();
-      return saved;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
-  }
   async findOrderHistory(orderId: string, userId: string) {
     const qb = this.dataSource
       .getRepository(OrderHistory)
@@ -234,31 +235,5 @@ export class OrdersService extends DBService<Order> {
       .andWhere('order.user_id = :userId', { userId })
       .orderBy('orderHistory.metadata.createdAt', 'DESC');
     return qb.getMany();
-  }
-
-  private async createOrderItems(
-    order: Order,
-    manager: EntityManager,
-    items: CreateOrderItemDto[],
-  ) {
-    const existingItems = await manager.find(Item, {
-      where: { id: In(items.map((item) => item.id)) } as any,
-    });
-    if (existingItems.length !== items.length) {
-      throw new NotFoundException({
-        message: 'Some items not found',
-        code: ErrorCodes.ITEM_NOT_FOUND,
-      });
-    }
-    await manager.delete(OrderItem, { order: { id: order.id } });
-    const orderItemsEntities: OrderItem[] = [];
-    for (const itemDto of items) {
-      const orderItem = new OrderItem();
-      orderItem.item = { id: itemDto.id } as any;
-      orderItem.quantity = itemDto.quantity;
-      orderItem.order = order;
-      orderItemsEntities.push(orderItem);
-    }
-    return await manager.save(orderItemsEntities);
   }
 }

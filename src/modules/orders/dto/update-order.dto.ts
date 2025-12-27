@@ -1,5 +1,4 @@
 import { PartialType } from '@nestjs/swagger';
-import { CreateOrderDto, CreateOrderItemDto } from './create-order.dto';
 import {
   IsArray,
   IsEnum,
@@ -11,6 +10,7 @@ import {
 } from 'class-validator';
 import { OrderStatus, OrderType } from '@/database/entities/order.entity';
 import { Type } from 'class-transformer';
+import { CreateOrderDto } from './create-order.dto';
 
 export class UpdateOrderDto {
   @IsOptional()
@@ -24,6 +24,6 @@ export class UpdateOrderDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateOrderItemDto)
-  items: CreateOrderItemDto[];
+  @Type(() => CreateOrderDto)
+  items: CreateOrderDto[];
 }

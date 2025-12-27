@@ -1,11 +1,6 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository, LessThan } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import {
   ServiceRequest,
   ServiceRequestStatus,
@@ -30,6 +25,8 @@ import {
   RelatedEntityType,
 } from '../notifications/dto/notification.enum';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
+import { CreateOrderDto } from '../orders/dto/create-order.dto';
+import { OrdersService } from '../orders/orders.service';
 
 @Injectable()
 export class ServiceRequestsService {
@@ -45,6 +42,7 @@ export class ServiceRequestsService {
     private storageService: StorageService,
     private notificationsService: NotificationsService,
     private sseService: ServiceRequestsSseService,
+    private ordersService: OrdersService,
     private dataSource: DataSource,
     private readonly i18n: LocalizationService,
   ) {}
@@ -198,6 +196,23 @@ export class ServiceRequestsService {
       isRead: false,
     });
     return savedRequest;
+  }
+
+  async createOrder(
+    requestId: string,
+    doctor: AuthUserDto,
+    dto: CreateOrderDto,
+  ) {
+    const request = await this.serviceRequestRepository.findOneOrFail({
+      where: {
+        id: requestId,
+        doctorId: doctor.id,
+        status: ServiceRequestStatus.REVIEWING,
+      },
+      relations: ['user'],
+    });
+    const order = this.ordersService.createOrder(dto, request, doctor);
+    return order;
   }
 
   private async notifyDoctors(

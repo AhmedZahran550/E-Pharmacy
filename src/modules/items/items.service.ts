@@ -42,11 +42,7 @@ export class ItemsService extends DBService<Item, CreateServiceDto> {
     return this.findAll(query, qb);
   }
 
-  async findBranchItems(
-    branchId: string,
-    sectionId?: string,
-    query?: QueryOptions,
-  ) {
+  async findBranchItems(branchId: string, query?: QueryOptions) {
     try {
       const qb = this.repository
         .createQueryBuilder('item')
@@ -57,7 +53,6 @@ export class ItemsService extends DBService<Item, CreateServiceDto> {
         .innerJoin('sec.providerSections', 'ps')
         .innerJoin('ps.provider', 'p')
         .innerJoin('p.branches', 'b')
-        // This LEFT JOIN is crucial for getting the correct price (either provider-specific or default)
         .leftJoin(
           'item.providerItems',
           'pi',
@@ -68,10 +63,6 @@ export class ItemsService extends DBService<Item, CreateServiceDto> {
           'disabledItem', // Alias for the joined table
           // Join condition: match the provider item AND the specific branch.
           'disabledItem.provider_item_id = pi.id AND disabledItem.branch_id = :branchId',
-        )
-        .addSelect(
-          'CAST(COALESCE(pi.sellingPrice, item.price) AS float)',
-          'item_price',
         )
         // Base filters
         .where('b.id = :branchId', { branchId })
@@ -89,10 +80,6 @@ export class ItemsService extends DBService<Item, CreateServiceDto> {
         .setParameters({
           isActive: true,
         });
-      if (sectionId) {
-        qb.andWhere('sec.id = :sectionId', { sectionId });
-      }
-
       // The super.findAll method will execute the fully constructed query
       const result = await super.findAll(query, qb);
       return result;

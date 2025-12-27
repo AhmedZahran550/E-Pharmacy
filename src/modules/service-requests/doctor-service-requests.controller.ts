@@ -7,19 +7,20 @@ import {
   Param,
   ParseUUIDPipe,
   BadRequestException,
+  Body,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/modules/auth/jwt-auth.guard';
 import { RolesGuard } from '@/modules/auth/roles.guard';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { Role } from '@/modules/auth/role.model';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
-import { Employee } from '@/database/entities/employee.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServiceRequestsService } from './service-requests.service';
@@ -28,6 +29,7 @@ import {
   ServiceRequestStatus,
 } from '@/database/entities/service-request.entity';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
+import { CreateOrderDto } from '../orders/dto/create-order.dto';
 
 @ApiTags('Doctor Service Requests')
 @Controller('doctor/service-requests')
@@ -91,5 +93,20 @@ export class DoctorServiceRequestsController {
     @AuthUser() doctor: AuthUserDto,
   ) {
     return this.serviceRequestsService.acceptRequest(requestId, doctor);
+  }
+
+  @Post(':requestId/create-order')
+  @ApiOperation({ summary: 'Create an order from a service request' })
+  @ApiResponse({ status: 201, description: 'Order created successfully' })
+  @ApiBody({ type: CreateOrderDto })
+  async createOrder(
+    @Param('requestId', ParseUUIDPipe) requestId: string,
+    @AuthUser() doctor: AuthUserDto,
+    @Body() dto: CreateOrderDto,
+  ) {
+    if (!doctor.branchId) {
+      throw new BadRequestException('Doctor must belong to a branch');
+    }
+    return this.serviceRequestsService.createOrder(requestId, doctor, dto);
   }
 }

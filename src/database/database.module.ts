@@ -19,6 +19,8 @@ import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { DeviceToken } from './entities/device-token.entity';
 import { SystemNotification } from './entities/system-notification.entity';
 import { BranchRating } from './entities/branch-rating.entity';
+import { MedicineSchedule } from './entities/medicine-schedule.entity';
+import { ServiceRequest } from './entities/service-request.entity';
 
 @Global()
 @Module({
@@ -49,6 +51,8 @@ import { BranchRating } from './entities/branch-rating.entity';
       Governorate,
       PasswordResetToken,
       DeviceToken,
+      MedicineSchedule,
+      ServiceRequest,
     ]),
   ],
   providers: [],
