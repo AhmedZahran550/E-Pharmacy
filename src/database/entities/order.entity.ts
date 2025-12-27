@@ -19,7 +19,7 @@ import { Employee } from './employee.entity';
 import { OrderHistory } from './order-history.entity';
 import { OrderItem } from './order-item.entity';
 import { Consultation } from './consultation.entity';
-import { OrderRequest } from './order-request.entity';
+import { ServiceRequest } from './service-request.entity';
 
 export enum OrderType {
   DELIVERY = 'DELIVERY',
@@ -113,14 +113,14 @@ export class Order extends BaseEntity {
   @Column({ type: 'uuid', nullable: true })
   consultationId: string;
 
-  @OneToOne(() => OrderRequest, (orderRequest) => orderRequest.order, {
+  @OneToOne(() => ServiceRequest, (serviceRequest) => serviceRequest.order, {
     nullable: true,
   })
-  @JoinColumn({ name: 'order_request_id' })
-  orderRequest: OrderRequest;
+  @JoinColumn({ name: 'service_request_id' })
+  serviceRequest: ServiceRequest;
 
   @Column({ type: 'uuid', nullable: true })
-  orderRequestId: string;
+  serviceRequestId: string;
 
   @ManyToOne(() => Employee, { nullable: true })
   @JoinColumn({ name: 'created_by_doctor_id' })

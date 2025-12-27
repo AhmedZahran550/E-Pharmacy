@@ -18,7 +18,7 @@ import { Exclude } from 'class-transformer';
 
 import { Policy } from '@/modules/auth/policies.types';
 import { Consultation } from './consultation.entity';
-import { OrderRequest } from './order-request.entity';
+import { ServiceRequest } from './service-request.entity';
 import { Order } from './order.entity';
 
 const LOCKED_DURATION_IN_MINUTES: number = process.env.LOCKED_DURATION
@@ -121,8 +121,8 @@ export class Employee extends BaseEntity {
   @Column({ type: 'int', default: 3 })
   maxConcurrentConsultations: number;
 
-  @OneToMany(() => OrderRequest, (orderRequest) => orderRequest.doctor)
-  orderRequests: OrderRequest[];
+  @OneToMany(() => ServiceRequest, (serviceRequest) => serviceRequest.doctor)
+  serviceRequests: ServiceRequest[];
 
   @OneToMany(() => Order, (order) => order.createdByDoctor)
   createdOrders: Order[];

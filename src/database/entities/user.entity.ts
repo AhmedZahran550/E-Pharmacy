@@ -26,7 +26,7 @@ import { hmacHashing } from '@/common/hmac-hashing';
 import { MedicalProfile } from './medical-profile.entity';
 import { Consultation } from './consultation.entity';
 import { MedicationSchedule } from './medication-schedule.entity';
-import { OrderRequest } from './order-request.entity';
+import { ServiceRequest } from './service-request.entity';
 
 export const USER_EMAIL_IDX = 'user_email_idx';
 export const USER_MOBILE_IDX = 'user_mobile_idx';
@@ -272,8 +272,8 @@ export class User extends BaseEntity {
   @OneToMany(() => MedicationSchedule, (schedule) => schedule.user)
   medicationSchedules: MedicationSchedule[];
 
-  @OneToMany(() => OrderRequest, (orderRequest) => orderRequest.user)
-  orderRequests: OrderRequest[];
+  @OneToMany(() => ServiceRequest, (serviceRequest) => serviceRequest.user)
+  serviceRequests: ServiceRequest[];
 
   @BeforeInsert()
   @BeforeUpdate()

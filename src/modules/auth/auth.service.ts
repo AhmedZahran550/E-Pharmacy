@@ -192,6 +192,19 @@ export class AuthService {
         isOnline: true,
         lastActiveAt: new Date(),
       } as any);
+      // Save device token if provided
+      if (dto.device_token) {
+        await this.appTokenRepository.upsert(
+          {
+            deviceToken: dto.device_token,
+            deviceInfo: dto.device_info,
+            employeeId: employee.id,
+            employee,
+          },
+          { conflictPaths: ['deviceToken', 'employee'] },
+        );
+      }
+
       return await this.employeeToAuthUser(employee);
     } catch (error) {
       this.logger.error(error);
@@ -265,6 +278,19 @@ export class AuthService {
       } else if (payload.clients.includes(Client.PORTAL)) {
         const employee = await this.employeesService.findByEmail(payload.email);
         this.VerifyEmployee(employee);
+        // Save device token if provided
+        if (dto.device_token) {
+          await this.appTokenRepository.upsert(
+            {
+              deviceToken: dto.device_token,
+              deviceInfo: dto.device_info,
+              employeeId: employee.id,
+              employee,
+            },
+            { conflictPaths: ['deviceToken', 'employee'] },
+          );
+        }
+
         const resp = await this.employeeToAuthUser(employee);
         return resp;
       }

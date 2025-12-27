@@ -1,6 +1,7 @@
+
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { OrderRequest } from './order-request.entity';
+import { ServiceRequest } from './service-request.entity';
 import { User } from './user.entity';
 import { Employee } from './employee.entity';
 
@@ -17,8 +18,8 @@ export enum SenderRole {
   SYSTEM = 'SYSTEM',
 }
 
-@Entity('order_request_messages')
-export class OrderRequestMessage extends BaseEntity {
+@Entity('service_request_messages')
+export class ServiceRequestMessage extends BaseEntity {
   @Column({ type: 'enum', enum: MessageType })
   type: MessageType;
 
@@ -42,12 +43,12 @@ export class OrderRequestMessage extends BaseEntity {
   readAt: Date;
 
   // Relationships
-  @ManyToOne(() => OrderRequest, (orderRequest) => orderRequest.messages)
-  @JoinColumn({ name: 'order_request_id' })
-  orderRequest: OrderRequest;
+  @ManyToOne(() => ServiceRequest, (serviceRequest) => serviceRequest.messages)
+  @JoinColumn({ name: 'service_request_id' })
+  request: ServiceRequest;
 
-  @Column({ type: 'uuid' })
-  orderRequestId: string;
+  @Column({ type: 'uuid', name: 'service_request_id' })
+  requestId: string;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'sender_user_id' })

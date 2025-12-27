@@ -14,7 +14,7 @@ import { Order } from './order.entity';
 import { ConsultationMessage } from './consultation-message.entity';
 import { MedicationSchedule } from './medication-schedule.entity';
 import { DateColumn } from '@/common/decorators/date-column.decorator';
-import { OrderRequest } from './order-request.entity';
+import { ServiceRequest } from './service-request.entity';
 
 export enum ConsultationStatus {
   REQUESTED = 'REQUESTED',
@@ -117,12 +117,16 @@ export class Consultation extends BaseEntity {
   @OneToMany(() => MedicationSchedule, (schedule) => schedule.consultation)
   medicationSchedules: MedicationSchedule[];
 
-  @OneToOne(() => OrderRequest, (orderRequest) => orderRequest.consultation, {
-    nullable: true,
-  })
-  @JoinColumn({ name: 'order_request_id' })
-  orderRequest: OrderRequest;
+  @OneToOne(
+    () => ServiceRequest,
+    (serviceRequest) => serviceRequest.consultation,
+    {
+      nullable: true,
+    },
+  )
+  @JoinColumn({ name: 'service_request_id' })
+  serviceRequest: ServiceRequest;
 
   @Column({ type: 'uuid', nullable: true })
-  orderRequestId: string;
+  serviceRequestId: string;
 }

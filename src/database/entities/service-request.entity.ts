@@ -12,9 +12,9 @@ import { Branch } from './branch.entity';
 import { Employee } from './employee.entity';
 import { Order } from './order.entity';
 import { Consultation } from './consultation.entity';
-import { OrderRequestMessage } from './order-request-message.entity';
+import { ServiceRequestMessage } from './service-request-message.entity';
 
-export enum OrderRequestStatus {
+export enum ServiceRequestStatus {
   PENDING = 'PENDING',
   REVIEWING = 'REVIEWING',
   CLARIFICATION_NEEDED = 'CLARIFICATION_NEEDED',
@@ -23,27 +23,27 @@ export enum OrderRequestStatus {
   EXPIRED = 'EXPIRED',
 }
 
-export enum OrderRequestType {
+export enum ServiceRequestType {
   PRESCRIPTION_IMAGE = 'PRESCRIPTION_IMAGE',
   ITEM_SELECTION = 'ITEM_SELECTION',
   MANUAL_ENTRY = 'MANUAL_ENTRY',
   MIXED = 'MIXED',
 }
 
-@Entity('order_requests')
-export class OrderRequest extends BaseEntity {
+@Entity('service_requests')
+export class ServiceRequest extends BaseEntity {
   @Column({ type: 'varchar', length: 20, unique: true })
-  requestNo: string; // e.g., "ORQ-1234567890"
+  requestNo: string; // e.g., "SRQ-1234567890"
 
-  @Column({ type: 'enum', enum: OrderRequestType })
-  type: OrderRequestType;
+  @Column({ type: 'enum', enum: ServiceRequestType })
+  type: ServiceRequestType;
 
   @Column({
     type: 'enum',
-    enum: OrderRequestStatus,
-    default: OrderRequestStatus.PENDING,
+    enum: ServiceRequestStatus,
+    default: ServiceRequestStatus.PENDING,
   })
-  status: OrderRequestStatus;
+  status: ServiceRequestStatus;
 
   @Column({ type: 'jsonb', nullable: true })
   prescriptionImages: string[]; // Array of image URLs
@@ -80,21 +80,21 @@ export class OrderRequest extends BaseEntity {
   doctorNotes: string; // Private notes from doctor
 
   // Relationships
-  @ManyToOne(() => User, (user) => user.orderRequests)
+  @ManyToOne(() => User, (user) => user.serviceRequests)
   @JoinColumn({ name: 'user_id' })
   user: User;
 
   @Column({ type: 'uuid' })
   userId: string;
 
-  @ManyToOne(() => Branch, (branch) => branch.orderRequests)
+  @ManyToOne(() => Branch, (branch) => branch.serviceRequests)
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
 
   @Column({ type: 'uuid' })
   branchId: string;
 
-  @ManyToOne(() => Employee, (employee) => employee.orderRequests, {
+  @ManyToOne(() => Employee, (employee) => employee.serviceRequests, {
     nullable: true,
   })
   @JoinColumn({ name: 'doctor_id' })
@@ -103,14 +103,22 @@ export class OrderRequest extends BaseEntity {
   @Column({ type: 'uuid', nullable: true })
   doctorId: string;
 
-  @OneToOne(() => Order, (order) => order.orderRequest, { nullable: true })
+  @OneToOne(() => Order, (order) => order.serviceRequest, { nullable: true })
   order: Order;
 
-  @OneToOne(() => Consultation, (consultation) => consultation.orderRequest, {
+  @OneToOne(() => Consultation, (consultation) => consultation.serviceRequest, {
     nullable: true,
   })
   consultation: Consultation;
 
-  @OneToMany(() => OrderRequestMessage, (message) => message.orderRequest)
-  messages: OrderRequestMessage[];
+  // Ideally rename OrderRequestMessage to ServiceRequestMessage too, but user didn't explicitly ask for that detail,
+  // but for consistency we should probably rename logic.
+  // For now, I'll keep the entity import but rename the property to avoid breaking `OrderRequestMessage` if I don't rename it.
+  // Actually, I should check if I need to rename `OrderRequestMessage`.
+  // The prompt said "change the name of the order-request to service-request".
+  // This likely implies cascading changes.
+  // I will assume `OrderRequestMessage` should refer to `ServiceRequest`.
+
+  @OneToMany(() => ServiceRequestMessage, (message) => message.request)
+  messages: ServiceRequestMessage[];
 }
