@@ -11,6 +11,8 @@ import {
   IsOptional,
   IsString,
   ValidateNested,
+  IsArray,
+  IsObject,
 } from 'class-validator';
 
 class RelatedEntityDto {
@@ -69,4 +71,13 @@ export class CreateSystemNotificationsDto {
 
   @IsEnum(SystemNotificationType)
   type: SystemNotificationType;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  pushTokens?: string[];
+
+  @IsOptional()
+  @IsObject()
+  data?: Record<string, unknown>;
 }

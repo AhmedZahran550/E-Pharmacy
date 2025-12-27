@@ -4,12 +4,14 @@ import { SystemNotificationsService } from './system-notification.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { CreateSystemNotificationsDto } from './dto/create-notification.dto'; // Assuming same DTO or similar interface
 import { EntityManager } from 'typeorm';
+import { PushNotificationsService } from '../push-notifications/push-notifications.service';
 
 @Injectable()
 export class NotificationsService {
   constructor(
     private readonly appNotificationService: AppNotificationService,
     private readonly systemNotificationsService: SystemNotificationsService,
+    private readonly pushNotificationsService: PushNotificationsService,
   ) {}
 
   // Delegate to AppNotificationService
@@ -22,10 +24,23 @@ export class NotificationsService {
 
   // Delegate to SystemNotificationsService
   async createSystemNotification(
-    createDto: any, // Using any here to match the flexible usage we had, or strict CreateSystemNotificationsDto
+    createDto: any & { pushTokens?: string[]; data?: Record<string, unknown> },
     options?: { manager?: EntityManager },
   ) {
-    return this.systemNotificationsService.create(createDto, options);
+    const notification = await this.systemNotificationsService.create(
+      createDto,
+      options,
+    );
+
+    if (createDto.pushTokens && createDto.pushTokens.length > 0) {
+      await this.pushNotificationsService.sendPushNotification(
+        createDto.pushTokens,
+        createDto.title,
+        createDto.message,
+        createDto.data,
+      );
+    }
+    return notification;
   }
 
   // Expose underlying services if needed

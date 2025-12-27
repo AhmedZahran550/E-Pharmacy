@@ -15,11 +15,15 @@ import { Employee } from '@/database/entities/employee.entity';
 import { DeviceToken } from '@/database/entities/device-token.entity';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
 import { StorageService } from '@/common/storage.service';
-import { PushNotificationsService } from '../push-notifications/push-notifications.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { NotificationType } from '../notifications/dto/notification.enum';
+import {
+  NotificationPriority,
+  SystemNotificationType,
+} from '../notifications/dto/notification.enum';
 import { ErrorCodes } from '@/common/error-codes';
 import { ServiceRequestsSseService } from './service-requests-sse.service';
+import { LocalizationService } from '@/i18n/localization.service';
+import { NotificationChannel } from '@/database/entities/system-notification.entity';
 
 @Injectable()
 export class ServiceRequestsService {
@@ -33,10 +37,10 @@ export class ServiceRequestsService {
     @InjectRepository(DeviceToken)
     private deviceTokenRepository: Repository<DeviceToken>,
     private storageService: StorageService,
-    private pushNotificationsService: PushNotificationsService,
     private notificationsService: NotificationsService,
     private sseService: ServiceRequestsSseService,
     private dataSource: DataSource,
+    private readonly i18n: LocalizationService,
   ) {}
 
   async create(
@@ -65,44 +69,35 @@ export class ServiceRequestsService {
           });
         }
       }
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    }
-
-    // 2. Upload images
-    const prescriptionImages: string[] = [];
-    if (files && files.length > 0) {
-      for (const file of files) {
-        const obj = await this.storageService.saveFile(
-          file,
-          `prescriptions/${user.id}/${Date.now()}-${file.originalname}`,
-          'prescriptions',
-        );
-        prescriptionImages.push(obj.url);
+      // 2. Upload images
+      const prescriptionImages: string[] = [];
+      if (files && files.length > 0) {
+        for (const file of files) {
+          const obj = await this.storageService.saveFile(
+            file,
+            `prescriptions/${user.id}/${Date.now()}-${file.originalname}`,
+            'prescriptions',
+          );
+          prescriptionImages.push(obj.url);
+        }
       }
-    }
 
-    // 3. Create Service Request
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 24);
+      // 3. Create Service Request
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
 
-    const serviceRequest = this.serviceRequestRepository.create({
-      ...dto,
-      userId: user.id,
-      requestNo: `SRQ-${Date.now()}`,
-      status: ServiceRequestStatus.PENDING,
-      prescriptionImages,
-      expiresAt,
-    });
-
-    try {
+      const serviceRequest = this.serviceRequestRepository.create({
+        ...dto,
+        userId: user.id,
+        requestNo: `SRQ-${Date.now()}`,
+        status: ServiceRequestStatus.PENDING,
+        prescriptionImages,
+        expiresAt,
+      });
       const savedRequest = await queryRunner.manager.save(serviceRequest);
       await queryRunner.commitTransaction();
-
       // 4. Notify Doctors
       this.notifyDoctors(savedRequest, dto.branch.id);
-
       return savedRequest;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -129,12 +124,9 @@ export class ServiceRequestsService {
         isOnline: true,
       },
     });
-
     if (doctors.length === 0) return;
-
     // 1. SSE Notification
     this.sseService.notifyNewServiceRequest(branchId, serviceRequest);
-
     // 2. Fetch device tokens for these doctors
     const doctorIds = doctors.map((d) => d.id);
     const deviceTokens = await this.deviceTokenRepository.find({
@@ -145,29 +137,19 @@ export class ServiceRequestsService {
 
     const tokens = deviceTokens.map((dt) => dt.deviceToken);
 
-    // 3. Send Push Notification
-    if (tokens.length > 0) {
-      await this.pushNotificationsService.sendPushNotification(
-        tokens,
-        'New Service Request',
-        `New service request #${serviceRequest.requestNo}`,
-        { serviceRequestId: serviceRequest.id },
-      );
-    }
-
-    // 4. In-App System Notification
-    for (const doctor of doctors) {
-      await this.notificationsService.createSystemNotification({
-        title: 'New Service Request',
-        body: `New service request #${serviceRequest.requestNo}`,
-        type: NotificationType.NEW_SERVICE_REQUEST, // Keep as NEW_ORDER_REQUEST or rename? User didn't specify enum rename.
-        // Assuming NEW_ORDER_REQUEST enum is used for service requests too for now.
-        // Or I should rename it to NEW_SERVICE_REQUEST.
-        // Given prompt "change the name of the order-request to service-request", I should probably rename the enum too.
-        // I'll check enum file later. For now, assume I will rename it.
-        recipientId: doctor.id,
-        data: { serviceRequestId: serviceRequest.id },
-      });
-    }
+    // 3. System Notification & Push
+    await this.notificationsService.createSystemNotification({
+      title: this.i18n.translate('notifications.NEW_SERVICE_REQUEST.title'),
+      message: this.i18n.translate('notifications.NEW_SERVICE_REQUEST.body', {
+        args: { requestNo: serviceRequest.requestNo },
+      }),
+      type: SystemNotificationType.NEW_SERVICE_REQUEST,
+      branch: { id: branchId },
+      pushTokens: tokens,
+      data: { serviceRequestId: serviceRequest.id },
+      priority: NotificationPriority.HIGH,
+      channel: NotificationChannel.PROVIDER_PORTAL,
+      isRead: false,
+    } as any);
   }
 }
