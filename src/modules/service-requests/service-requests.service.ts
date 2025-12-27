@@ -19,7 +19,7 @@ import { PushNotificationsService } from '../push-notifications/push-notificatio
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/dto/notification.enum';
 import { ErrorCodes } from '@/common/error-codes';
-import { ServiceRequestsSseController } from './service-requests-sse.controller';
+import { ServiceRequestsSseService } from './service-requests-sse.service';
 
 @Injectable()
 export class ServiceRequestsService {
@@ -35,7 +35,7 @@ export class ServiceRequestsService {
     private storageService: StorageService,
     private pushNotificationsService: PushNotificationsService,
     private notificationsService: NotificationsService,
-    private sseController: ServiceRequestsSseController,
+    private sseService: ServiceRequestsSseService,
     private dataSource: DataSource,
   ) {}
 
@@ -133,7 +133,7 @@ export class ServiceRequestsService {
     if (doctors.length === 0) return;
 
     // 1. SSE Notification
-    this.sseController.notifyNewServiceRequest(branchId, serviceRequest);
+    this.sseService.notifyNewServiceRequest(branchId, serviceRequest);
 
     // 2. Fetch device tokens for these doctors
     const doctorIds = doctors.map((d) => d.id);

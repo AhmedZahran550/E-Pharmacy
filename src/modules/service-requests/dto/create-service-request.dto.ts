@@ -31,10 +31,6 @@ export class ManualItemDto {
   @IsNumber()
   @IsOptional()
   quantity?: number;
-
-  @IsString()
-  @IsOptional()
-  dosage?: string;
 }
 
 export class CreateServiceRequestDto {

@@ -43,6 +43,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { ItemsModule } from './modules/items/items.module';
 import { ConsultationsModule } from './modules/consultations/consultations.module';
 import { MedicineSchedulesModule } from './modules/medicine-schedules/medicine-schedules.module';
+import { ServiceRequestsModule } from './modules/service-requests/service-requests.module';
 const envFolderPath = `${__dirname}/config/env`;
 
 const envFilePath = [
@@ -117,6 +118,7 @@ const envFilePath = [
     ItemsModule,
     ConsultationsModule,
     MedicineSchedulesModule,
+    ServiceRequestsModule,
   ],
   providers: [
     {

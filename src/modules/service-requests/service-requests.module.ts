@@ -9,6 +9,7 @@ import { ServiceRequestsController } from './service-requests.controller';
 import { DoctorServiceRequestsController } from './doctor-service-requests.controller';
 import { ServiceRequestsSseController } from './service-requests-sse.controller';
 import { StorageService } from '@/common/storage.service';
+import { ServiceRequestsSseService } from './service-requests-sse.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PushNotificationsModule } from '../push-notifications/push-notifications.module';
 
@@ -23,7 +24,11 @@ import { PushNotificationsModule } from '../push-notifications/push-notification
     DoctorServiceRequestsController,
     ServiceRequestsSseController,
   ],
-  providers: [ServiceRequestsService, StorageService],
+  providers: [
+    ServiceRequestsService,
+    StorageService,
+    ServiceRequestsSseService,
+  ],
   exports: [ServiceRequestsService],
 })
 export class ServiceRequestsModule {}
