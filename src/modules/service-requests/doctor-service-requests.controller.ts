@@ -6,6 +6,7 @@ import {
   Post,
   Param,
   ParseUUIDPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -58,6 +59,28 @@ export class DoctorServiceRequestsController {
       },
       relations: ['user'],
     });
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get service request details with user medical profile',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Service request details with medical profile',
+  })
+  async getOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @AuthUser() doctor: AuthUserDto,
+  ) {
+    if (!doctor.branchId) {
+      // Should not happen due to guard, but good for safety
+      throw new BadRequestException('Doctor must have a branch');
+    }
+    return this.serviceRequestsService.getOneWithMedicalProfile(
+      id,
+      doctor.branchId,
+    );
   }
 
   @Post(':requestId/accept')

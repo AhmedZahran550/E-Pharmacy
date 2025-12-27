@@ -119,6 +119,15 @@ export class ServiceRequestsService {
     });
   }
 
+  async getOneWithMedicalProfile(id: string, branchId: string) {
+    const request = await this.serviceRequestRepository.findOneOrFail({
+      where: { id, branchId },
+      relations: ['user', 'user.medicalProfile'],
+    });
+
+    return request;
+  }
+
   async acceptRequest(requestId: string, doctor: AuthUserDto) {
     if (!doctor.branchId) {
       throw new BadRequestException('Doctor must belong to a branch');
