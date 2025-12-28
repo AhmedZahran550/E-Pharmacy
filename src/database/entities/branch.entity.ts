@@ -25,6 +25,8 @@ import * as argon from 'argon2';
 
 import { DecimalColumn } from '../decimal-column.decorator';
 import { SystemNotification } from './system-notification.entity';
+import { Consultation } from './consultation.entity';
+import { ServiceRequest } from './service-request.entity';
 
 @Entity({ name: 'branch' })
 @Index('BRANCH_LOCATION_UNIQUE_IDX', ['provider', 'longitude', 'latitude'], {
@@ -121,6 +123,12 @@ export class Branch extends BaseEntity {
 
   @OneToMany(() => SystemNotification, (notification) => notification.branch)
   notifications: SystemNotification[];
+
+  @OneToMany(() => Consultation, (consultation) => consultation.branch)
+  consultations: Consultation[];
+
+  @OneToMany(() => ServiceRequest, (serviceRequest) => serviceRequest.branch)
+  serviceRequests: ServiceRequest[];
 
   @Exclude()
   @Column({ select: false, nullable: true })

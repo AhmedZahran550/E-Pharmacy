@@ -15,8 +15,11 @@ import { DecimalColumn } from '../decimal-column.decorator';
 import { BaseEntity } from './base.entity';
 import { Branch } from './branch.entity';
 import { User } from './user.entity';
+import { Employee } from './employee.entity';
 import { OrderHistory } from './order-history.entity';
 import { OrderItem } from './order-item.entity';
+import { Consultation } from './consultation.entity';
+import { ServiceRequest } from './service-request.entity';
 
 export enum OrderType {
   DELIVERY = 'DELIVERY',
@@ -100,6 +103,31 @@ export class Order extends BaseEntity {
     onDelete: 'CASCADE',
   })
   orderItems: OrderItem[];
+
+  @ManyToOne(() => Consultation, (consultation) => consultation.orders, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'consultation_id' })
+  consultation: Consultation;
+
+  @Column({ type: 'uuid', nullable: true })
+  consultationId: string;
+
+  @OneToOne(() => ServiceRequest, (serviceRequest) => serviceRequest.order, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'service_request_id' })
+  serviceRequest: ServiceRequest;
+
+  @Column({ type: 'uuid', nullable: true })
+  serviceRequestId: string;
+
+  @ManyToOne(() => Employee, { nullable: true })
+  @JoinColumn({ name: 'created_by_doctor_id' })
+  createdByDoctor: Employee;
+
+  @Column({ type: 'uuid', nullable: true })
+  createdByDoctorId: string;
 
   @Column({
     type: 'boolean',

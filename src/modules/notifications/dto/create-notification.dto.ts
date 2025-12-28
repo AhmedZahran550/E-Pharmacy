@@ -11,6 +11,8 @@ import {
   IsOptional,
   IsString,
   ValidateNested,
+  IsArray,
+  IsObject,
 } from 'class-validator';
 
 class RelatedEntityDto {
@@ -24,10 +26,10 @@ class RelatedEntityDto {
 export class CreateNotificationDto {
   @IsOptional()
   @IsString()
-  title: string;
+  title?: string;
   @IsOptional()
   @IsString()
-  message: string;
+  message?: string;
   @IsOptional()
   @IsUUIDObj()
   recipient: {
@@ -44,6 +46,15 @@ export class CreateNotificationDto {
   @ValidateNested()
   @Type(() => RelatedEntityDto)
   relatedEntity: RelatedEntityDto;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  pushTokens?: string[];
+
+  @IsOptional()
+  @IsObject()
+  data?: Record<string, unknown>;
 }
 export class CreateSystemNotificationsDto {
   @IsString()
@@ -69,4 +80,13 @@ export class CreateSystemNotificationsDto {
 
   @IsEnum(SystemNotificationType)
   type: SystemNotificationType;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  pushTokens?: string[];
+
+  @IsOptional()
+  @IsObject()
+  data?: Record<string, unknown>;
 }

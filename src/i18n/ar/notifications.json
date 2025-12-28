@@ -2,5 +2,9 @@
   "NEW_ORDER": {
     "title": "طلب جديد",
     "body": "وصلك طلب جديد رقم {orderNo}. محتاج مراجعتك وتأكيدك."
+  },
+  "NEW_SERVICE_REQUEST": {
+    "title": "طلب خدمة جديد",
+    "body": "طلب خدمة جديد #{requestNo}"
   }
 }

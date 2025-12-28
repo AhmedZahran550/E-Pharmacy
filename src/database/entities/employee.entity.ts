@@ -17,6 +17,9 @@ import { Branch } from './branch.entity';
 import { Exclude } from 'class-transformer';
 
 import { Policy } from '@/modules/auth/policies.types';
+import { Consultation } from './consultation.entity';
+import { ServiceRequest } from './service-request.entity';
+import { Order } from './order.entity';
 
 const LOCKED_DURATION_IN_MINUTES: number = process.env.LOCKED_DURATION
   ? parseInt(process.env.LOCKED_DURATION)
@@ -105,6 +108,36 @@ export class Employee extends BaseEntity {
   @ManyToOne(() => Branch, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn()
   branch: Branch;
+
+  @OneToMany(() => Consultation, (consultation) => consultation.doctor)
+  consultations: Consultation[];
+
+  @Column({ type: 'boolean', default: true })
+  availableForConsultation: boolean;
+
+  @Column({ type: 'int', default: 0 })
+  activeConsultationsCount: number;
+
+  @Column({ type: 'int', default: 3 })
+  maxConcurrentConsultations: number;
+
+  @OneToMany(() => ServiceRequest, (serviceRequest) => serviceRequest.doctor)
+  serviceRequests: ServiceRequest[];
+
+  @OneToMany(() => Order, (order) => order.createdByDoctor)
+  createdOrders: Order[];
+
+  @Column({ type: 'boolean', default: true })
+  isVisibleToPublic: boolean; // For doctor discovery
+
+  @Column({ type: 'text', nullable: true })
+  specialties: string; // Comma-separated
+
+  @Column({ type: 'text', nullable: true })
+  bio: string; // Doctor biography
+
+  @Column({ type: 'int', default: 0 })
+  totalConsultations: number;
 
   @BeforeInsert()
   @BeforeUpdate()

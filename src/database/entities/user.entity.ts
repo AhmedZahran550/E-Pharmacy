@@ -24,6 +24,9 @@ import { encrypt } from '@/common/crypto';
 import { Exclude } from 'class-transformer';
 import { hmacHashing } from '@/common/hmac-hashing';
 import { MedicalProfile } from './medical-profile.entity';
+import { Consultation } from './consultation.entity';
+import { MedicineSchedule } from './medicine-schedule.entity';
+import { ServiceRequest } from './service-request.entity';
 
 export const USER_EMAIL_IDX = 'user_email_idx';
 export const USER_MOBILE_IDX = 'user_mobile_idx';
@@ -262,6 +265,15 @@ export class User extends BaseEntity {
     default: false,
   })
   isMedicalProfileCompleted: boolean;
+
+  @OneToMany(() => Consultation, (consultation) => consultation.user)
+  consultations: Consultation[];
+
+  @OneToMany(() => MedicineSchedule, (schedule) => schedule.user)
+  medicineSchedules: MedicineSchedule[];
+
+  @OneToMany(() => ServiceRequest, (serviceRequest) => serviceRequest.user)
+  serviceRequests: ServiceRequest[];
 
   @BeforeInsert()
   @BeforeUpdate()

@@ -115,5 +115,6 @@
   "FAMILY_MEMBER_NOT_FOUND": "Family member not found.",
   "CANNOT_DELETE_PRINCIPAL": "Cannot delete the principal family member.",
   "FAMILY_MEMBER_UNAUTHORIZED": "You don't have permission to manage this family member.",
-  "DUPLICATE_RATING": "You have already rated this doctor."
+  "DUPLICATE_RATING": "You have already rated this doctor.",
+  "DOCTOR_NOT_ASSOCIATED_WITH_BRANCH": "Doctor is not associated with a branch."
 }

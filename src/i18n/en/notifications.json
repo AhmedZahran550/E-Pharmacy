@@ -2,5 +2,9 @@
   "NEW_ORDER": {
     "title": "New order",
     "body": "You have received a new order #{orderNo}. Please review and confirm it."
+  },
+  "NEW_SERVICE_REQUEST": {
+    "title": "New Service Request",
+    "body": "New service request #{requestNo}"
   }
 }

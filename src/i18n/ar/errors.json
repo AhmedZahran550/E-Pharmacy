@@ -115,5 +115,6 @@
   "FAMILY_MEMBER_NOT_FOUND": "فرد العائلة غير موجود.",
   "CANNOT_DELETE_PRINCIPAL": "لا يمكن حذف العضو الرئيسي للعائلة.",
   "FAMILY_MEMBER_UNAUTHORIZED": "ليس لديك صلاحية لإدارة هذا الفرد من العائلة.",
-  "DUPLICATE_RATING": "لقد قمت بتقييم هذا الطبيب بالفعل."
+  "DUPLICATE_RATING": "لقد قمت بتقييم هذا الطبيب بالفعل.",
+  "DOCTOR_NOT_ASSOCIATED_WITH_BRANCH": "الطبيب غير مرتبط بأي فرع."
 }

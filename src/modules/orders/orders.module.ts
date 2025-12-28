@@ -6,6 +6,7 @@ import { SharedModule } from '@/common/shared.module';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { ServiceRequestsModule } from '../service-requests/service-requests.module';
 
 @Module({
   controllers: [OrdersController],
@@ -16,6 +17,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     EmployeesModule,
     BranchesModule,
     SharedModule,
+    forwardRef(() => ServiceRequestsModule),
   ],
   exports: [OrdersService],
 })
