@@ -48,7 +48,6 @@ export class DoctorServiceRequestsController {
   @ApiResponse({ status: 200, description: 'List of service requests' })
   async findAll(@AuthUser() doctor: AuthUserDto) {
     const branchId = doctor.branch?.id;
-
     return this.serviceRequestRepository.find({
       where: {
         branchId: branchId,

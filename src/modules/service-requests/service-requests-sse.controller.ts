@@ -24,13 +24,15 @@ import { Role } from '@/modules/auth/role.model';
 import { Request } from 'express';
 import { Employee } from '@/database/entities/employee.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ServiceRequest } from '@/database/entities/service-request.entity';
+import { In, Not, Repository } from 'typeorm';
+import {
+  ServiceRequest,
+  ServiceRequestStatus,
+} from '@/database/entities/service-request.entity';
 import { ServiceRequestsSseService } from './service-requests-sse.service';
 
 @ApiTags('Service Requests Real-time Stream')
 @Controller('service-requests')
-@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class ServiceRequestsSseController {
   constructor(
@@ -66,13 +68,15 @@ export class ServiceRequestsSseController {
   ): Promise<Observable<MessageEvent>> {
     const user = req.user as any;
 
-    const request = await this.serviceRequestRepository.findOne({
-      where: { id: requestId, userId: user.id },
+    const request = await this.serviceRequestRepository.findOneOrFail({
+      where: {
+        id: requestId,
+        userId: user.id,
+        status: Not(
+          In([ServiceRequestStatus.CANCELLED, ServiceRequestStatus.COMPLETED]),
+        ),
+      },
     });
-
-    if (!request) {
-      throw new NotFoundException('Service request not found or access denied');
-    }
 
     return this.sseService.createRequestStream(requestId);
   }
