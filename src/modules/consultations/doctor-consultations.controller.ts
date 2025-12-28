@@ -1,20 +1,10 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Patch,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Post, Get, Patch, Param, Body } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/modules/auth/jwt-auth.guard';
-import { RolesGuard } from '@/modules/auth/roles.guard';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { Employee } from '@/database/entities/employee.entity';
@@ -35,7 +25,6 @@ import { ConsultationSseController } from './consultation-sse.controller';
 
 @ApiTags('Doctor Consultations')
 @Controller('doctor/consultations')
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.PROVIDER_DOCTOR, Role.PROVIDER_ADMIN)
 @ApiBearerAuth()
 export class DoctorConsultationsController {

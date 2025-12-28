@@ -17,7 +17,7 @@ import { ServiceRequestsModule } from '../service-requests/service-requests.modu
     EmployeesModule,
     BranchesModule,
     SharedModule,
-    ServiceRequestsModule,
+    forwardRef(() => ServiceRequestsModule),
   ],
   exports: [OrdersService],
 })

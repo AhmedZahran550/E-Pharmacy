@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  UseGuards,
   Query,
   Post,
   Param,
@@ -16,8 +15,6 @@ import {
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/modules/auth/jwt-auth.guard';
-import { RolesGuard } from '@/modules/auth/roles.guard';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { Role } from '@/modules/auth/role.model';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
@@ -30,36 +27,29 @@ import {
 } from '@/database/entities/service-request.entity';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { CreateOrderDto } from '../orders/dto/create-order.dto';
+import { Paginate } from 'nestjs-paginate';
+import { QueryOptions } from '@/common/query-options';
 
 @ApiTags('Doctor Service Requests')
 @Controller('doctor/service-requests')
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.PROVIDER_DOCTOR, Role.PROVIDER_ADMIN)
 @ApiBearerAuth()
 export class DoctorServiceRequestsController {
-  constructor(
-    @InjectRepository(ServiceRequest)
-    private serviceRequestRepository: Repository<ServiceRequest>,
-    private serviceRequestsService: ServiceRequestsService,
-  ) {}
+  constructor(private serviceRequestsService: ServiceRequestsService) {}
 
   @Get()
   @ApiOperation({ summary: 'List pending service requests for doctor branch' })
   @ApiResponse({ status: 200, description: 'List of service requests' })
-  async findAll(@AuthUser() doctor: AuthUserDto) {
-    const branchId = doctor.branch?.id;
-    return this.serviceRequestRepository.find({
-      where: {
-        branchId: branchId,
-        status: ServiceRequestStatus.PENDING,
-      },
-      order: {
-        metadata: {
-          createdAt: 'DESC',
-        },
-      },
-      relations: ['user'],
-    });
+  async findAll(
+    @AuthUser() doctor: AuthUserDto,
+    @Paginate() query: QueryOptions,
+  ) {
+    const branchId = doctor.branchId;
+    query.filter = {
+      'branch.id': `$eq:${branchId}`,
+      status: `$eq:${ServiceRequestStatus.PENDING}`,
+    };
+    return this.serviceRequestsService.findAll(query);
   }
 
   @Get(':id')

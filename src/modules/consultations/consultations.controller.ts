@@ -13,8 +13,6 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/modules/auth/jwt-auth.guard';
-import { RolesGuard } from '@/modules/auth/roles.guard';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { User } from '@/database/entities/user.entity';
@@ -30,7 +28,6 @@ import { ConsultationSseController } from './consultation-sse.controller';
 
 @ApiTags('Consultations')
 @Controller('consultations')
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.APP_USER)
 @ApiBearerAuth()
 export class ConsultationsController {

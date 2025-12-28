@@ -7,7 +7,6 @@ import {
   Param,
   Body,
   Query,
-  UseGuards,
   ParseBoolPipe,
 } from '@nestjs/common';
 import {
@@ -17,8 +16,6 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/modules/auth/jwt-auth.guard';
-import { RolesGuard } from '@/modules/auth/roles.guard';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { User } from '@/database/entities/user.entity';
@@ -30,7 +27,6 @@ import { Role } from '@/modules/auth/role.model';
 
 @ApiTags('Medicine Schedules')
 @Controller('medicine-schedules')
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(Role.APP_USER)
 @ApiBearerAuth()
 export class MedicineSchedulesController {

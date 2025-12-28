@@ -27,9 +27,25 @@ import {
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { CreateOrderDto } from '../orders/dto/create-order.dto';
 import { OrdersService } from '../orders/orders.service';
+import { DBService } from '@/database/db.service';
+import { QueryConfig } from '@/common/query-options';
+import { FilterOperator } from 'nestjs-paginate';
+
+const SERVICE_REQUEST_CONFIG: QueryConfig<ServiceRequest> = {
+  sortableColumns: ['metadata.createdAt'],
+  filterableColumns: {
+    id: [FilterOperator.EQ, FilterOperator.IN],
+    status: [FilterOperator.EQ],
+    'branch.id': [FilterOperator.EQ],
+    'doctor.id': [FilterOperator.EQ],
+    'user.id': [FilterOperator.EQ],
+  },
+  searchableColumns: ['user.firstName', 'user.email'],
+  defaultSortBy: [['metadata.createdAt', 'DESC']],
+};
 
 @Injectable()
-export class ServiceRequestsService {
+export class ServiceRequestsService extends DBService<ServiceRequest> {
   constructor(
     @InjectRepository(ServiceRequest)
     private serviceRequestRepository: Repository<ServiceRequest>,
@@ -45,9 +61,11 @@ export class ServiceRequestsService {
     private ordersService: OrdersService,
     private dataSource: DataSource,
     private readonly i18n: LocalizationService,
-  ) {}
+  ) {
+    super(serviceRequestRepository, SERVICE_REQUEST_CONFIG);
+  }
 
-  async create(
+  async createRequest(
     user: User,
     dto: CreateServiceRequestDto,
     files: Express.Multer.File[] = [],

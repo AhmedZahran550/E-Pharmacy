@@ -2,14 +2,12 @@ import {
   Controller,
   Sse,
   Req,
-  UseGuards,
   MessageEvent,
   Param,
   ForbiddenException,
 } from '@nestjs/common';
 import { Observable, interval, fromEvent } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { JwtAuthGuard } from '@/modules/auth/jwt-auth.guard';
 import { ConsultationsService } from './consultations.service';
 import { EventEmitter } from 'events';
 import { Request } from 'express';
@@ -23,7 +21,6 @@ import {
 
 @ApiTags('Consultation Real-time Stream')
 @Controller('consultations')
-@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class ConsultationSseController {
   private eventEmitter = new EventEmitter();

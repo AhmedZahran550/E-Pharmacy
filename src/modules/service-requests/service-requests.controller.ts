@@ -33,7 +33,7 @@ export class ServiceRequestsController {
     @Body() dto: CreateServiceRequestDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.serviceRequestsService.create(user, dto, files);
+    return this.serviceRequestsService.createRequest(user, dto, files);
   }
 
   @Get(':id')

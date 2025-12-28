@@ -1,28 +1,21 @@
 import {
   Controller,
   Sse,
-  UseGuards,
   MessageEvent,
   Req,
-  ForbiddenException,
   Param,
-  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
-import { Observable, fromEvent } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { JwtAuthGuard } from '@/modules/auth/jwt-auth.guard';
-import { EventEmitter } from 'events';
+import { Observable } from 'rxjs';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { RolesGuard } from '@/modules/auth/roles.guard';
 import { Roles } from '@/modules/auth/decorators/roles.decorator';
 import { Role } from '@/modules/auth/role.model';
 import { Request } from 'express';
-import { Employee } from '@/database/entities/employee.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Not, Repository } from 'typeorm';
 import {
@@ -30,9 +23,10 @@ import {
   ServiceRequestStatus,
 } from '@/database/entities/service-request.entity';
 import { ServiceRequestsSseService } from './service-requests-sse.service';
+import { ErrorCodes } from '@/common/error-codes';
 
 @ApiTags('Service Requests Real-time Stream')
-@Controller('service-requests')
+@Controller('')
 @ApiBearerAuth()
 export class ServiceRequestsSseController {
   constructor(
@@ -41,25 +35,28 @@ export class ServiceRequestsSseController {
     private serviceRequestRepository: Repository<ServiceRequest>,
   ) {}
 
-  // @Roles(Role.PROVIDER_DOCTOR, Role.PROVIDER_ADMIN)
-  // @Sse('doctor/stream')
-  // @ApiOperation({ summary: 'Stream new service requests for doctor branch' })
-  // @ApiResponse({ status: 200, description: 'SSE stream established' })
-  // streamBranchRequests(@Req() req: Request): Observable<MessageEvent> {
-  //   const user = req.user as any; // Cast to any to access branch link if AuthUserDto
+  @Roles(Role.PROVIDER_DOCTOR, Role.PROVIDER_ADMIN)
+  @Sse('doctor/service-requests/list/stream')
+  @ApiOperation({ summary: 'Stream new service requests for doctor branch' })
+  @ApiResponse({ status: 200, description: 'SSE stream established' })
+  streamBranchRequests(@Req() req: Request): Observable<MessageEvent> {
+    const user = req.user as any; // Cast to any to access branch link if AuthUserDto
 
-  //   // Fallback or explicit check
-  //   const branchId = user.branchId || user.branch?.id;
+    // Fallback or explicit check
+    const branchId = user.branchId || user.branch?.id;
 
-  //   if (!branchId) {
-  //     throw new ForbiddenException('Doctor not associated with a branch');
-  //   }
+    if (!branchId) {
+      throw new ForbiddenException({
+        message: 'Doctor not associated with a branch',
+        code: ErrorCodes.DOCTOR_NOT_ASSOCIATED_WITH_BRANCH,
+      });
+    }
 
-  //   return this.sseService.createStream(branchId);
-  // }
+    return this.sseService.createStream(branchId);
+  }
 
   @Roles(Role.APP_USER)
-  @Sse(':requestId/stream')
+  @Sse('service-requests/:requestId/stream')
   @ApiOperation({ summary: 'Stream updates for a specific service request' })
   @ApiResponse({ status: 200, description: 'SSE stream established' })
   async streamRequestUpdates(
