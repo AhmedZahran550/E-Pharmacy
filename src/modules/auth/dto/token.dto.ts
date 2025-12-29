@@ -9,7 +9,8 @@ export interface TokenPayload {
   customerId?: string;
   clients: string[];
   isFamilyManager?: boolean;
-  fullName?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface AdminTokenPayload extends TokenPayload {
