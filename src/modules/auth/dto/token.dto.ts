@@ -9,6 +9,7 @@ export interface TokenPayload {
   customerId?: string;
   clients: string[];
   isFamilyManager?: boolean;
+  fullName?: string;
 }
 
 export interface AdminTokenPayload extends TokenPayload {
@@ -19,9 +20,4 @@ export interface ProviderTokenPayload extends TokenPayload {
   email: string;
   branchId?: string;
   providerId: string;
-}
-
-export interface CustomerTokenPayload extends TokenPayload {
-  email: string;
-  customerId: string;
 }

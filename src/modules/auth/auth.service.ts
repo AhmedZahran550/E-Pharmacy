@@ -4,7 +4,6 @@ import { FieldError } from '@/common/models/error-response';
 import { handleError } from '@/database/db.errors';
 import { AuthProvider, User } from '@/database/entities/user.entity';
 import { LocalizationService } from '@/i18n/localization.service';
-import { IdentityConfirmationDto } from '@/modules/auth/dto/identity-confirmation.dto';
 import {
   BadRequestException,
   ForbiddenException,
@@ -26,7 +25,6 @@ import { OtpService } from './otp.service';
 import { Role } from './role.model';
 import {
   AdminTokenPayload,
-  CustomerTokenPayload,
   ProviderTokenPayload,
   TokenPayload,
 } from './dto/token.dto';
@@ -505,10 +503,7 @@ export class AuthService {
   }
 
   async employeeToAuthUser(employee: Employee) {
-    let payload:
-      | ProviderTokenPayload
-      | CustomerTokenPayload
-      | AdminTokenPayload;
+    let payload: ProviderTokenPayload | AdminTokenPayload;
     let policies;
     if (employee.policies && employee.policies?.length > 0) {
       policies = this.serializePolicies(employee.policies);
@@ -518,6 +513,7 @@ export class AuthService {
         sub: employee.id,
         roles: employee.roles,
         email: employee.email,
+        fullName: `${employee.firstName} ${employee.lastName}`,
         policies,
         branchId: employee.branch?.id,
         providerId: employee.branch?.provider.id,
