@@ -6,5 +6,9 @@
   "NEW_SERVICE_REQUEST": {
     "title": "طلب خدمة جديد",
     "body": "طلب خدمة جديد #{requestNo}"
+  },
+  "ORDER_ACCEPTED": {
+    "title": "تم تعيين طبيب",
+    "body": "تم تعيين الدكتور {doctorName} لطلبك."
   }
 }

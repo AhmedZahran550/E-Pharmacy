@@ -197,13 +197,13 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
       'doctor_assigned',
     );
     this.notificationsService.createAppNotification({
-      title: this.i18n.translate('notifications.DOCTOR_ASSIGNED.title', {
+      title: this.i18n.translate('notifications.ORDER_ACCEPTED.title', {
         args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
       }),
-      message: this.i18n.translate('notifications.DOCTOR_ASSIGNED.body', {
+      message: this.i18n.translate('notifications.ORDER_ACCEPTED.body', {
         args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
       }),
-      type: NotificationType.SERVICE_REQUEST_UPDATE,
+      type: NotificationType.ORDER_ACCEPTED,
       recipient: { id: request.userId },
       data: { serviceRequestId: request.id },
       relatedEntity: {

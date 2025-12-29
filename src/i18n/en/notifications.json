@@ -6,5 +6,9 @@
   "NEW_SERVICE_REQUEST": {
     "title": "New Service Request",
     "body": "New service request #{requestNo}"
+  },
+  "ORDER_ACCEPTED": {
+    "title": "Order Accepted",
+    "body": "Doctor {doctorName} accepted your order."
   }
 }
