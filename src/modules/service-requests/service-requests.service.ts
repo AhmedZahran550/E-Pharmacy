@@ -148,72 +148,69 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
     if (!doctor.branchId) {
       throw new BadRequestException('Doctor must belong to a branch');
     }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    let savedRequest: ServiceRequest;
+    try {
+      const request = await queryRunner.manager.findOne(ServiceRequest, {
+        where: { id: requestId, branchId: doctor.branchId },
+        relations: ['user'],
+        lock: { mode: 'pessimistic_write' },
+      });
 
-    const request = await this.serviceRequestRepository.findOneOrFail({
-      where: { id: requestId, branchId: doctor.branchId },
-      relations: ['user'],
-      lock: { mode: 'optimistic', version: 1 },
-    });
+      if (!request) {
+        throw new BadRequestException('Request not found');
+      }
 
-    if (request.status !== ServiceRequestStatus.PENDING) {
-      throw new BadRequestException(
-        'Request is not in PENDING status and cannot be accepted',
-      );
-    }
-
-    // // Check max concurrent requests (assuming 5 for now)
-    // const activeRequestsCount = await this.serviceRequestRepository.count({
-    //   where: {
-    //     doctorId: doctor.id,
-    //     status: ServiceRequestStatus.REVIEWING,
-    //   },
-    // });
-
-    // const MAX_CONCURRENT_REQUESTS = 5;
-    // if (activeRequestsCount >= MAX_CONCURRENT_REQUESTS) {
-    //   throw new BadRequestException(
-    //     'You have reached the maximum number of concurrent requests',
-    //   );
-    // }
-
-    // Update Request
-    request.status = ServiceRequestStatus.REVIEWING;
-    request.doctor = { id: doctor.id } as any;
-    request.assignedAt = new Date();
-
-    const savedRequest = await this.serviceRequestRepository.save(request);
-
-    // Notify User
-    // 1. SSE
-    this.sseService.notifyServiceRequestUpdate(
-      request.id,
-      {
-        status: request.status,
-        doctor: {
-          id: doctor.id,
-          firstName: doctor.firstName,
-          lastName: doctor.lastName,
+      if (request.status !== ServiceRequestStatus.PENDING) {
+        throw new BadRequestException(
+          'Request is not in PENDING status and cannot be accepted',
+        );
+      }
+      // Update Request
+      request.status = ServiceRequestStatus.REVIEWING;
+      request.doctor = { id: doctor.id } as any;
+      request.assignedAt = new Date();
+      savedRequest = await queryRunner.manager.save(request);
+      // Notify User
+      // 1. SSE
+      this.sseService.notifyServiceRequestUpdate(
+        savedRequest.id,
+        {
+          status: savedRequest.status,
+          doctor: {
+            id: doctor.id,
+            firstName: doctor.firstName,
+            lastName: doctor.lastName,
+          },
         },
-      },
-      'doctor_assigned',
-    );
-    this.notificationsService.createAppNotification({
-      title: this.i18n.translate('notifications.DOCTOR_ASSIGNED.title', {
-        args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
-      }),
-      message: this.i18n.translate('notifications.DOCTOR_ASSIGNED.body', {
-        args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
-      }),
-      type: NotificationType.SERVICE_REQUEST_UPDATE,
-      recipient: { id: request.userId },
-      data: { serviceRequestId: request.id },
-      relatedEntity: {
-        type: RelatedEntityType.SERVICE_REQUEST,
-        id: request.id,
-      },
-      isRead: false,
-    });
-    return savedRequest;
+        'doctor_assigned',
+      );
+      this.notificationsService.createAppNotification({
+        title: this.i18n.translate('notifications.DOCTOR_ASSIGNED.title', {
+          args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
+        }),
+        message: this.i18n.translate('notifications.DOCTOR_ASSIGNED.body', {
+          args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
+        }),
+        type: NotificationType.SERVICE_REQUEST_UPDATE,
+        recipient: { id: savedRequest.userId },
+        data: { serviceRequestId: savedRequest.id },
+        relatedEntity: {
+          type: RelatedEntityType.SERVICE_REQUEST,
+          id: savedRequest.id,
+        },
+        isRead: false,
+      });
+      await queryRunner.commitTransaction();
+      return savedRequest;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async createOrder(
