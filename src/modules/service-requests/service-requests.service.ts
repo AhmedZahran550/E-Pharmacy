@@ -28,7 +28,7 @@ import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { CreateOrderDto } from '../orders/dto/create-order.dto';
 import { OrdersService } from '../orders/orders.service';
 import { DBService } from '@/database/db.service';
-import { QueryConfig } from '@/common/query-options';
+import { QueryConfig, QueryOptions } from '@/common/query-options';
 import { FilterOperator } from 'nestjs-paginate';
 
 const SERVICE_REQUEST_CONFIG: QueryConfig<ServiceRequest> = {
@@ -65,8 +65,15 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
     super(serviceRequestRepository, SERVICE_REQUEST_CONFIG);
   }
 
+  async findAllByUser(query: QueryOptions, user: AuthUserDto) {
+    const qb = this.serviceRequestRepository
+      .createQueryBuilder('sr')
+      .where('sr.userId = :userId', { userId: user.id });
+    return super.findAll(query, qb);
+  }
+
   async createRequest(
-    user: User,
+    user: AuthUserDto,
     dto: CreateServiceRequestDto,
     files: Express.Multer.File[] = [],
   ) {
@@ -196,7 +203,7 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
       },
       'doctor_assigned',
     );
-    this.notificationsService.createAppNotification({
+    this.notificationsService.createNotification({
       title: this.i18n.translate('notifications.ORDER_ACCEPTED.title', {
         args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
       }),
@@ -204,7 +211,7 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
         args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
       }),
       type: NotificationType.ORDER_ACCEPTED,
-      recipient: { id: request.userId },
+      user: { id: request.userId },
       data: { serviceRequestId: request.id },
       relatedEntity: {
         type: RelatedEntityType.SERVICE_REQUEST,

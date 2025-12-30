@@ -7,6 +7,7 @@ import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { DateColumn } from '../../common/decorators/date-column.decorator';
 import { BaseEntity } from './base.entity';
 import { User } from './user.entity';
+import { Employee } from './employee.entity';
 
 export interface RelatedEntity {
   otp?: string;
@@ -45,8 +46,14 @@ export class Notification extends BaseEntity {
   @ManyToOne(() => User, (user) => user.notifications, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'recipient_id' })
-  recipient: Partial<User>;
+  @JoinColumn({ name: 'user_id' })
+  user: Partial<User>;
+
+  @ManyToOne(() => Employee, (employee) => employee.notifications, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'employee_id' })
+  employee: Partial<Employee>;
 
   @Column({ type: 'jsonb', nullable: true })
   relatedEntity: RelatedEntity;

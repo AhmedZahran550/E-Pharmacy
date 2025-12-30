@@ -210,7 +210,7 @@ export class User extends BaseEntity {
   })
   roles?: Role[];
 
-  @OneToMany(() => Notification, (notification) => notification.recipient, {
+  @OneToMany(() => Notification, (notification) => notification.user, {
     nullable: true,
   })
   notifications?: Notification[];

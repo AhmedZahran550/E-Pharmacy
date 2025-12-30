@@ -142,13 +142,13 @@ export class ServiceRequestMessagesService {
       }
     } else {
       // Notify User
-      await this.notificationsService.createAppNotification({
+      await this.notificationsService.createNotification({
         title: this.i18n.translate('notifications.NEW_MESSAGE.title'),
         message: this.i18n.translate('notifications.NEW_MESSAGE.body', {
           args: { senderName: 'Doctor' }, // Or specific doctor name
         }),
         type: NotificationType.NEW_MESSAGE,
-        recipient: { id: request.userId },
+        user: { id: request.userId },
         data: { serviceRequestId: request.id, messageId: message.id },
         relatedEntity: {
           type: RelatedEntityType.SERVICE_REQUEST,

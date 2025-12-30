@@ -21,6 +21,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { ServiceRequestMessagesService } from './service-request-messages.service';
 import { SenderRole } from '@/database/entities/service-request-message.entity';
 import { CreateServiceRequestMessageDto } from './dto/create-service-request-message.dto';
+import { QueryOptions } from '@/common/query-options';
+import { Paginate } from 'nestjs-paginate';
 
 @ApiTags('Service Requests')
 @Controller('service-requests')
@@ -34,11 +36,16 @@ export class ServiceRequestsController {
   @Post()
   @UseInterceptors(FilesInterceptor('images', 5, fileInterceptorOptions))
   async create(
-    @AuthUser() user: User,
+    @AuthUser() user: AuthUserDto,
     @Body() dto: CreateServiceRequestDto,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     return this.serviceRequestsService.createRequest(user, dto, files);
+  }
+
+  @Get()
+  async getAll(@AuthUser() user: AuthUserDto, @Paginate() query: QueryOptions) {
+    return this.serviceRequestsService.findAllByUser(query, user);
   }
 
   @Get(':id')

@@ -52,7 +52,7 @@ export class NotificationsController {
   @ApiResponse({ status: 404, description: 'Notification not found' })
   findOne(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
     return this.notificationsService.app.find({
-      where: { id, recipient: { id: user.id } },
+      where: { id, user: { id: user.id } },
     });
   }
 
@@ -69,7 +69,7 @@ export class NotificationsController {
   async delete(@Param('id') id: string, @AuthUser() user: AuthUserDto) {
     console.log('Deleting notification with id:', id, 'for user:', user.id);
     return this.notificationsService.app.delete(id, {
-      where: { recipient: { id: user.id } },
+      where: { user: { id: user.id } },
     });
   }
 
@@ -84,7 +84,7 @@ export class NotificationsController {
   })
   async deleteAll(@AuthUser() user: AuthUserDto) {
     return this.notificationsService.app.deleteBy({
-      recipient: { id: user.id },
+      user: { id: user.id },
     });
   }
 
@@ -105,7 +105,7 @@ export class NotificationsController {
   ) {
     return this.notificationsService.app.update(id, updateNotificationDto, {
       where: {
-        recipient: { id: user.id },
+        user: { id: user.id },
       },
     });
   }
