@@ -37,6 +37,7 @@ import { CreateServiceRequestMessageDto } from './dto/create-service-request-mes
 import { ServiceRequestMessagesService } from './service-request-messages.service';
 import { SenderRole } from '@/database/entities/service-request-message.entity';
 import { HttpCode } from '@nestjs/common';
+import { ServiceRequestActionDto } from './dto/serviceRequestActionDto';
 
 @ApiTags('Doctor Service Requests')
 @Controller('doctor/service-requests')
@@ -56,11 +57,7 @@ export class DoctorServiceRequestsController {
     @Paginate() query: QueryOptions,
   ) {
     const branchId = doctor.branchId;
-    query.filter = {
-      'branch.id': `$eq:${branchId}`,
-      status: `$eq:${ServiceRequestStatus.PENDING}`,
-    };
-    return this.serviceRequestsService.findAll(query);
+    return this.serviceRequestsService.findAllByBranchId(query, branchId);
   }
 
   @Get(':id')
@@ -85,14 +82,20 @@ export class DoctorServiceRequestsController {
     );
   }
 
-  @Post(':requestId/accept')
+  @Post(':requestId/action')
   @ApiOperation({ summary: 'Accept a service request' })
   @ApiResponse({ status: 200, description: 'Request accepted' })
-  async acceptRequest(
+  async handleRequestAction(
     @Param('requestId', ParseUUIDPipe) requestId: string,
+    @Body() dto: ServiceRequestActionDto,
     @AuthUser() doctor: AuthUserDto,
   ) {
-    return this.serviceRequestsService.acceptRequest(requestId, doctor);
+    return this.serviceRequestsService.handleRequestAction(
+      requestId,
+      doctor,
+      dto.action,
+      dto.cancellationReason,
+    );
   }
 
   @Post(':requestId/create-order')
@@ -127,5 +130,15 @@ export class DoctorServiceRequestsController {
       files,
       SenderRole.DOCTOR,
     );
+  }
+
+  @Get(':requestId/messages')
+  @ApiOperation({ summary: 'Get messages for a service request' })
+  @ApiResponse({ status: 200, description: 'List of messages' })
+  async getMessages(
+    @Param('requestId', ParseUUIDPipe) requestId: string,
+    @AuthUser() doctor: AuthUserDto,
+  ) {
+    return this.serviceRequestMessagesService.getMessages(requestId, doctor);
   }
 }

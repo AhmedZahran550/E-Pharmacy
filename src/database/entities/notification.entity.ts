@@ -15,7 +15,8 @@ export interface RelatedEntity {
   id: number | string;
   orderNo?: string;
 }
-@Index('NOTIFICATION_RECIPIENT_IDX', ['recipient'])
+@Index('NOTIFICATION_USER_IDX', ['user'])
+@Index('NOTIFICATION_EMPLOYEE_IDX', ['employee'])
 @Entity({ name: 'notification' })
 export class Notification extends BaseEntity {
   @Column()

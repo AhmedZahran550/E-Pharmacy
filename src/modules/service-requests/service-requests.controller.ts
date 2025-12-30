@@ -69,4 +69,11 @@ export class ServiceRequestsController {
       SenderRole.USER,
     );
   }
+  @Get(':requestId/messages')
+  async getRequestMessages(
+    @Param('requestId', ParseUUIDPipe) requestId: string,
+    @AuthUser() user: AuthUserDto,
+  ) {
+    return this.serviceRequestMessagesService.getMessages(requestId, user);
+  }
 }

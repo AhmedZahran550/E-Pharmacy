@@ -4,13 +4,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  FindOptions,
+  FindOptionsWhere,
+  Repository,
+} from 'typeorm';
 import {
   ServiceRequestMessage,
   MessageType,
   SenderRole,
 } from '@/database/entities/service-request-message.entity';
-import { ServiceRequest } from '@/database/entities/service-request.entity';
+import {
+  ServiceRequest,
+  ServiceRequestStatus,
+} from '@/database/entities/service-request.entity';
 import { CreateServiceRequestMessageDto } from './dto/create-service-request-message.dto';
 import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { StorageService } from '@/common/storage.service';
@@ -26,6 +34,7 @@ import {
 import { NotificationChannel } from '@/database/entities/system-notification.entity';
 import { DeviceToken } from '@/database/entities/device-token.entity';
 import { In } from 'typeorm';
+import { Role } from '../auth/role.model';
 
 @Injectable()
 export class ServiceRequestMessagesService {
@@ -54,6 +63,14 @@ export class ServiceRequestMessagesService {
     // Validation: Check if sender is part of the request
     if (role === SenderRole.USER && request.userId !== sender.id) {
       throw new BadRequestException('You are not the owner of this request');
+    }
+    if (
+      !request.doctorId ||
+      request.status !== ServiceRequestStatus.REVIEWING
+    ) {
+      throw new BadRequestException(
+        'Doctor is not assigned to this request or request is not in reviewing state',
+      );
     }
     if (role === SenderRole.DOCTOR) {
       // For doctor, check if assigned
@@ -120,42 +137,36 @@ export class ServiceRequestMessagesService {
       'new_message',
     );
 
-    // 2. Push/System Notification
-    if (senderRole === SenderRole.USER) {
-      // Notify Doctor
-      if (request.doctorId) {
-        await this.notificationsService.createSystemNotification({
-          title: this.i18n.translate('notifications.NEW_MESSAGE.title'),
-          message: this.i18n.translate('notifications.NEW_MESSAGE.body', {
-            args: {
-              senderName: `${request.user.firstName} ${request.user.lastName}`,
-            },
-          }),
-          type: SystemNotificationType.NEW_MESSAGE,
-          data: { serviceRequestId: request.id, messageId: message.id },
-          priority: NotificationPriority.HIGH,
-          channel: NotificationChannel.PROVIDER_PORTAL,
-          isRead: false,
-          // Explicitly link to the doctor employee
-          recipientId: request.doctorId,
-        } as any);
-      }
-    } else {
-      // Notify User
-      await this.notificationsService.createNotification({
-        title: this.i18n.translate('notifications.NEW_MESSAGE.title'),
-        message: this.i18n.translate('notifications.NEW_MESSAGE.body', {
-          args: { senderName: 'Doctor' }, // Or specific doctor name
-        }),
-        type: NotificationType.NEW_MESSAGE,
-        user: { id: request.userId },
-        data: { serviceRequestId: request.id, messageId: message.id },
-        relatedEntity: {
-          type: RelatedEntityType.SERVICE_REQUEST,
-          id: request.id,
-        },
-        isRead: false,
-      });
+    await this.notificationsService.createNotification({
+      title: this.i18n.translate('notifications.NEW_MESSAGE.title'),
+      message: this.i18n.translate('notifications.NEW_MESSAGE.body', {
+        args: { senderName: 'Doctor' }, // Or specific doctor name
+      }),
+      type: NotificationType.NEW_MESSAGE,
+      user: senderRole === SenderRole.DOCTOR ? { id: request.userId } : null,
+      employee:
+        senderRole === SenderRole.USER ? { id: request.doctorId } : null,
+      data: { serviceRequestId: request.id, messageId: message.id },
+      relatedEntity: {
+        type: RelatedEntityType.SERVICE_REQUEST,
+        id: request.id,
+      },
+      isRead: false,
+    });
+  }
+
+  async getMessages(requestId: string, user: AuthUserDto) {
+    const qb = this.messageRepository
+      .createQueryBuilder('message')
+      .innerJoin('message.request', 'request')
+      .where('request.id = :requestId', { requestId })
+      .orderBy('message.createdAt', 'DESC');
+    if (user.roles.includes(Role.PROVIDER_DOCTOR)) {
+      qb.andWhere('request.doctorId = :doctorId', { doctorId: user.id });
     }
+    if (user.roles.includes(Role.APP_USER)) {
+      qb.andWhere('request.userId = :userId', { userId: user.id });
+    }
+    return qb.getMany();
   }
 }

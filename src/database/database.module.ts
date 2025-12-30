@@ -21,6 +21,7 @@ import { SystemNotification } from './entities/system-notification.entity';
 import { BranchRating } from './entities/branch-rating.entity';
 import { MedicineSchedule } from './entities/medicine-schedule.entity';
 import { ServiceRequest } from './entities/service-request.entity';
+import { ServiceRequestMessage } from './entities/service-request-message.entity';
 
 @Global()
 @Module({
@@ -53,6 +54,7 @@ import { ServiceRequest } from './entities/service-request.entity';
       DeviceToken,
       MedicineSchedule,
       ServiceRequest,
+      ServiceRequestMessage,
     ]),
   ],
   providers: [],

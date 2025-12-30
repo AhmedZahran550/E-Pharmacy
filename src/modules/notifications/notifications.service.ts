@@ -98,7 +98,7 @@ export class NotificationsService {
 
       if (
         recipient instanceof User &&
-        (!recipient.preferences?.notificationsEnabled ||
+        (!recipient.preferences?.pushNotificationsEnabled ||
           !recipient.notificationsEnabled)
       ) {
         this.logger.debug(

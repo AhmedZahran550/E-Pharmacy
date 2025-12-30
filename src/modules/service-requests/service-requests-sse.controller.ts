@@ -64,11 +64,11 @@ export class ServiceRequestsSseController {
     @Req() req: Request,
   ): Promise<Observable<MessageEvent>> {
     const user = req.user as any;
-
     const request = await this.serviceRequestRepository.findOneOrFail({
       where: {
         id: requestId,
-        userId: user.id,
+        userId: user.roles.includes(Role.APP_USER) ? user.id : null,
+        doctorId: user.roles.includes(Role.PROVIDER_DOCTOR) ? user.id : null,
         status: Not(
           In([ServiceRequestStatus.CANCELLED, ServiceRequestStatus.COMPLETED]),
         ),
