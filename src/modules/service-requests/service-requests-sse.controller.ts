@@ -55,7 +55,7 @@ export class ServiceRequestsSseController {
     return this.sseService.createStream(branchId);
   }
 
-  @Roles(Role.APP_USER)
+  @Roles(Role.APP_USER, Role.PROVIDER_DOCTOR)
   @Sse('service-requests/:requestId/stream')
   @ApiOperation({ summary: 'Stream updates for a specific service request' })
   @ApiResponse({ status: 200, description: 'SSE stream established' })

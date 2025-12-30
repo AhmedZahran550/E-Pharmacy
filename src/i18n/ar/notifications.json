@@ -10,5 +10,9 @@
   "ORDER_ACCEPTED": {
     "title": "تم تعيين طبيب",
     "body": "تم تعيين الدكتور {doctorName} لطلبك."
+  },
+  "NEW_MESSAGE": {
+    "title": "رسالة جديدة",
+    "body": "لديك رسالة جديدة من {senderName}"
   }
 }

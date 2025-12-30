@@ -10,5 +10,9 @@
   "ORDER_ACCEPTED": {
     "title": "Order Accepted",
     "body": "Doctor {doctorName} accepted your order."
+  },
+  "NEW_MESSAGE": {
+    "title": "New Message",
+    "body": "You have a new message from {senderName}"
   }
 }

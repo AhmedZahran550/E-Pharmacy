@@ -12,11 +12,15 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthUser } from '@/modules/auth/decorators/auth-user.decorator';
 import { User } from '@/database/entities/user.entity';
+import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
 import { ServiceRequestsService } from './service-requests.service';
 import fileInterceptorOptions from '@/common/interceptors/file-interceptor-options';
 import { Role } from '../auth/role.model';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { ServiceRequestMessagesService } from './service-request-messages.service';
+import { SenderRole } from '@/database/entities/service-request-message.entity';
+import { CreateServiceRequestMessageDto } from './dto/create-service-request-message.dto';
 
 @ApiTags('Service Requests')
 @Controller('service-requests')
@@ -24,6 +28,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 export class ServiceRequestsController {
   constructor(
     private readonly serviceRequestsService: ServiceRequestsService,
+    private readonly serviceRequestMessagesService: ServiceRequestMessagesService,
   ) {}
 
   @Post()
@@ -39,5 +44,22 @@ export class ServiceRequestsController {
   @Get(':id')
   async getOne(@AuthUser() user: User, @Param('id', ParseUUIDPipe) id: string) {
     return this.serviceRequestsService.getOne(id, user.id);
+  }
+
+  @Post(':requestId/messages')
+  @UseInterceptors(FilesInterceptor('attachments', 5, fileInterceptorOptions))
+  async createMessage(
+    @Param('requestId', ParseUUIDPipe) requestId: string,
+    @AuthUser() user: AuthUserDto,
+    @Body() dto: CreateServiceRequestMessageDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.serviceRequestMessagesService.createMessage(
+      requestId,
+      user,
+      dto,
+      files,
+      SenderRole.USER,
+    );
   }
 }
