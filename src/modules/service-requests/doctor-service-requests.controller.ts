@@ -93,7 +93,7 @@ export class DoctorServiceRequestsController {
     return this.serviceRequestsService.handleRequestAction(
       requestId,
       doctor,
-      dto.action,
+      dto.type,
       dto.cancellationReason,
     );
   }

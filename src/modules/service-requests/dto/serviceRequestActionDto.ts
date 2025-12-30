@@ -7,9 +7,9 @@ export enum ServiceRequestAction {
 
 export class ServiceRequestActionDto {
   @IsString()
-  @ValidateIf((dto) => dto.action === ServiceRequestAction.REJECT)
+  @ValidateIf((dto) => dto.type === ServiceRequestAction.REJECT)
   cancellationReason?: string;
 
   @IsEnum(ServiceRequestAction)
-  action: ServiceRequestAction;
+  type: ServiceRequestAction;
 }

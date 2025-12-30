@@ -161,7 +161,7 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
   async handleRequestAction(
     requestId: string,
     doctor: AuthUserDto,
-    action: ServiceRequestAction,
+    type: ServiceRequestAction,
     reason?: string,
   ) {
     if (!doctor.branchId) {
@@ -180,7 +180,7 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
     }
     // Update Request
     request.status =
-      action === ServiceRequestAction.ACCEPT
+      type === ServiceRequestAction.ACCEPT
         ? ServiceRequestStatus.REVIEWING
         : ServiceRequestStatus.REJECTED;
     request.doctor = { id: doctor.id } as any;
@@ -202,7 +202,7 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
       'doctor_assigned',
     );
     const notificationType =
-      action === 'accept'
+      type === 'accept'
         ? NotificationType.SERVICE_REQUEST_ACCEPTED
         : NotificationType.SERVICE_REQUEST_REJECTED;
     // 2. Notification
