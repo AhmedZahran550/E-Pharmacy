@@ -76,9 +76,6 @@ export class Provider extends BaseEntity {
   @Column({ select: false, nullable: true })
   adminPassword: string;
 
-  @OneToMany(() => SystemNotification, (notification) => notification.provider)
-  notifications: SystemNotification[];
-
   @BeforeInsert()
   @BeforeUpdate()
   async beforeChanges() {

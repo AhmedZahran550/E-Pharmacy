@@ -53,8 +53,8 @@ export enum AuthProvider {
 
 export interface UserPreferences {
   language: string;
-  notificationsEnabled: boolean;
-  emailNotifications: boolean;
+  pushNotificationsEnabled: boolean;
+  emailNotificationsEnabled: boolean;
 }
 
 // const LOCKED_DURATION_IN_MINUTES: number = process.env.LOCKED_DURATION
@@ -210,7 +210,7 @@ export class User extends BaseEntity {
   })
   roles?: Role[];
 
-  @OneToMany(() => Notification, (notification) => notification.recipient, {
+  @OneToMany(() => Notification, (notification) => notification.user, {
     nullable: true,
   })
   notifications?: Notification[];

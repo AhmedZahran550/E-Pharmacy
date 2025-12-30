@@ -7,7 +7,11 @@ import {
   ParseUUIDPipe,
   BadRequestException,
   Body,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import fileInterceptorOptions from '@/common/interceptors/file-interceptor-options';
 import {
   ApiTags,
   ApiOperation,
@@ -29,13 +33,21 @@ import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { CreateOrderDto } from '../orders/dto/create-order.dto';
 import { Paginate } from 'nestjs-paginate';
 import { QueryOptions } from '@/common/query-options';
+import { CreateServiceRequestMessageDto } from './dto/create-service-request-message.dto';
+import { ServiceRequestMessagesService } from './service-request-messages.service';
+import { SenderRole } from '@/database/entities/service-request-message.entity';
+import { HttpCode } from '@nestjs/common';
+import { ServiceRequestActionDto } from './dto/serviceRequestActionDto';
 
 @ApiTags('Doctor Service Requests')
 @Controller('doctor/service-requests')
 @Roles(Role.PROVIDER_DOCTOR, Role.PROVIDER_ADMIN)
 @ApiBearerAuth()
 export class DoctorServiceRequestsController {
-  constructor(private serviceRequestsService: ServiceRequestsService) {}
+  constructor(
+    private serviceRequestsService: ServiceRequestsService,
+    private serviceRequestMessagesService: ServiceRequestMessagesService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List pending service requests for doctor branch' })
@@ -45,11 +57,7 @@ export class DoctorServiceRequestsController {
     @Paginate() query: QueryOptions,
   ) {
     const branchId = doctor.branchId;
-    query.filter = {
-      'branch.id': `$eq:${branchId}`,
-      status: `$eq:${ServiceRequestStatus.PENDING}`,
-    };
-    return this.serviceRequestsService.findAll(query);
+    return this.serviceRequestsService.findAllByBranchId(query, branchId);
   }
 
   @Get(':id')
@@ -74,14 +82,20 @@ export class DoctorServiceRequestsController {
     );
   }
 
-  @Post(':requestId/accept')
+  @Post(':requestId/action')
   @ApiOperation({ summary: 'Accept a service request' })
   @ApiResponse({ status: 200, description: 'Request accepted' })
-  async acceptRequest(
+  async handleRequestAction(
     @Param('requestId', ParseUUIDPipe) requestId: string,
+    @Body() dto: ServiceRequestActionDto,
     @AuthUser() doctor: AuthUserDto,
   ) {
-    return this.serviceRequestsService.acceptRequest(requestId, doctor);
+    return this.serviceRequestsService.handleRequestAction(
+      requestId,
+      doctor,
+      dto.type,
+      dto.cancellationReason,
+    );
   }
 
   @Post(':requestId/create-order')
@@ -97,5 +111,34 @@ export class DoctorServiceRequestsController {
       throw new BadRequestException('Doctor must belong to a branch');
     }
     return this.serviceRequestsService.createOrder(requestId, doctor, dto);
+  }
+
+  @Post(':requestId/messages')
+  @ApiOperation({ summary: 'Send a message to a service request' })
+  @HttpCode(201)
+  @UseInterceptors(FilesInterceptor('attachments', 5, fileInterceptorOptions))
+  async createMessage(
+    @Param('requestId', ParseUUIDPipe) requestId: string,
+    @AuthUser() doctor: AuthUserDto,
+    @Body() dto: CreateServiceRequestMessageDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    return this.serviceRequestMessagesService.createMessage(
+      requestId,
+      doctor,
+      dto,
+      files,
+      SenderRole.DOCTOR,
+    );
+  }
+
+  @Get(':requestId/messages')
+  @ApiOperation({ summary: 'Get messages for a service request' })
+  @ApiResponse({ status: 200, description: 'List of messages' })
+  async getMessages(
+    @Param('requestId', ParseUUIDPipe) requestId: string,
+    @AuthUser() doctor: AuthUserDto,
+  ) {
+    return this.serviceRequestMessagesService.getMessages(requestId, doctor);
   }
 }

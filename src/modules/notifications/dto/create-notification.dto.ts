@@ -32,7 +32,12 @@ export class CreateNotificationDto {
   message?: string;
   @IsOptional()
   @IsUUIDObj()
-  recipient: {
+  user?: {
+    id: string;
+  };
+  @IsOptional()
+  @IsUUIDObj()
+  employee?: {
     id: string;
   };
 
@@ -64,7 +69,13 @@ export class CreateSystemNotificationsDto {
   message: string;
 
   @IsUUIDObj()
-  recipient: {
+  @IsOptional()
+  branch?: {
+    id: string;
+  };
+  @IsUUIDObj()
+  @IsOptional()
+  provider?: {
     id: string;
   };
 

@@ -181,13 +181,13 @@ export class OrdersService extends DBService<Order> {
         'order_created',
       );
 
-      this.notificationsService.createAppNotification({
+      this.notificationsService.createNotification({
         title: this.i18n.translate('notifications.ORDER_CREATED.title'),
         message: this.i18n.translate('notifications.ORDER_CREATED.body', {
           args: { orderNo: savedOrder.orderNo },
         }),
         type: NotificationType.NEW_ORDER,
-        recipient: { id: request.userId },
+        user: { id: request.userId },
         relatedEntity: {
           type: RelatedEntityType.ORDER,
           id: savedOrder.id,

@@ -7,8 +7,16 @@
     "title": "New Service Request",
     "body": "New service request #{requestNo}"
   },
-  "ORDER_ACCEPTED": {
-    "title": "Order Accepted",
-    "body": "Doctor {doctorName} accepted your order."
+  "SERVICE_REQUEST_ACCEPTED": {
+    "title": "Service Request Accepted",
+    "body": "Service request #{requestNo} accepted"
+  },
+  "SERVICE_REQUEST_REJECTED": {
+    "title": "Service Request Rejected",
+    "body": "Service request #{requestNo} rejected"
+  },
+  "NEW_MESSAGE": {
+    "title": "New Message",
+    "body": "You have a new message from {senderName}"
   }
 }

@@ -34,7 +34,10 @@ export class DeviceToken extends BaseEntity {
   @Column({ type: 'uuid', nullable: true })
   userId: string;
 
-  @ManyToOne(() => Employee, { onDelete: 'CASCADE', nullable: true })
+  @ManyToOne(() => Employee, (employee) => employee.deviceTokens, {
+    onDelete: 'CASCADE',
+    nullable: true,
+  })
   @JoinColumn({ name: 'employee_id' })
   employee: Employee;
 

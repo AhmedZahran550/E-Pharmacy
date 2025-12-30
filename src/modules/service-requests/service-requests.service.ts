@@ -28,8 +28,9 @@ import { AuthUserDto } from '../auth/dto/auth-user.dto';
 import { CreateOrderDto } from '../orders/dto/create-order.dto';
 import { OrdersService } from '../orders/orders.service';
 import { DBService } from '@/database/db.service';
-import { QueryConfig } from '@/common/query-options';
+import { QueryConfig, QueryOptions } from '@/common/query-options';
 import { FilterOperator } from 'nestjs-paginate';
+import { ServiceRequestAction } from './dto/serviceRequestActionDto';
 
 const SERVICE_REQUEST_CONFIG: QueryConfig<ServiceRequest> = {
   sortableColumns: ['metadata.createdAt'],
@@ -65,8 +66,21 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
     super(serviceRequestRepository, SERVICE_REQUEST_CONFIG);
   }
 
+  async findAllByBranchId(query: QueryOptions, branchId: string) {
+    const qb = this.serviceRequestRepository
+      .createQueryBuilder('sr')
+      .where('sr.branchId = :branchId', { branchId });
+    return super.findAll(query, qb);
+  }
+  async findAllByUser(query: QueryOptions, user: AuthUserDto) {
+    const qb = this.serviceRequestRepository
+      .createQueryBuilder('sr')
+      .where('sr.userId = :userId', { userId: user.id });
+    return super.findAll(query, qb);
+  }
+
   async createRequest(
-    user: User,
+    user: AuthUserDto,
     dto: CreateServiceRequestDto,
     files: Express.Multer.File[] = [],
   ) {
@@ -144,7 +158,12 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
     return request;
   }
 
-  async acceptRequest(requestId: string, doctor: AuthUserDto) {
+  async handleRequestAction(
+    requestId: string,
+    doctor: AuthUserDto,
+    type: ServiceRequestAction,
+    reason?: string,
+  ) {
     if (!doctor.branchId) {
       throw new BadRequestException('Doctor must belong to a branch');
     }
@@ -159,29 +178,15 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
         'Request is not in PENDING status and cannot be accepted',
       );
     }
-
-    // // Check max concurrent requests (assuming 5 for now)
-    // const activeRequestsCount = await this.serviceRequestRepository.count({
-    //   where: {
-    //     doctorId: doctor.id,
-    //     status: ServiceRequestStatus.REVIEWING,
-    //   },
-    // });
-
-    // const MAX_CONCURRENT_REQUESTS = 5;
-    // if (activeRequestsCount >= MAX_CONCURRENT_REQUESTS) {
-    //   throw new BadRequestException(
-    //     'You have reached the maximum number of concurrent requests',
-    //   );
-    // }
-
     // Update Request
-    request.status = ServiceRequestStatus.REVIEWING;
+    request.status =
+      type === ServiceRequestAction.ACCEPT
+        ? ServiceRequestStatus.REVIEWING
+        : ServiceRequestStatus.REJECTED;
     request.doctor = { id: doctor.id } as any;
     request.assignedAt = new Date();
-
+    request.cancellationReason = reason;
     const savedRequest = await this.serviceRequestRepository.save(request);
-
     // Notify User
     // 1. SSE
     this.sseService.notifyServiceRequestUpdate(
@@ -196,16 +201,21 @@ export class ServiceRequestsService extends DBService<ServiceRequest> {
       },
       'doctor_assigned',
     );
-    this.notificationsService.createAppNotification({
-      title: this.i18n.translate('notifications.ORDER_ACCEPTED.title', {
+    const notificationType =
+      type === 'accept'
+        ? NotificationType.SERVICE_REQUEST_ACCEPTED
+        : NotificationType.SERVICE_REQUEST_REJECTED;
+    // 2. Notification
+    this.notificationsService.createNotification({
+      title: this.i18n.translate(`notifications.${notificationType}.title`, {
         args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
       }),
-      message: this.i18n.translate('notifications.ORDER_ACCEPTED.body', {
+      message: this.i18n.translate(`notifications.${notificationType}.body`, {
         args: { doctorName: `${doctor.firstName} ${doctor.lastName}` },
       }),
-      type: NotificationType.ORDER_ACCEPTED,
-      recipient: { id: request.userId },
-      data: { serviceRequestId: request.id },
+      type: notificationType,
+      user: { id: request.userId },
+      data: { serviceRequestId: request.id, cancellationReason: reason },
       relatedEntity: {
         type: RelatedEntityType.SERVICE_REQUEST,
         id: request.id,

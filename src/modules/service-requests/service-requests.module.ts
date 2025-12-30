@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { ServiceRequestsService } from './service-requests.service';
+import { ServiceRequestMessagesService } from './service-request-messages.service';
 import { ServiceRequestsController } from './service-requests.controller';
 import { DoctorServiceRequestsController } from './doctor-service-requests.controller';
 import { ServiceRequestsSseController } from './service-requests-sse.controller';
@@ -24,9 +25,14 @@ import { OrdersModule } from '../orders/orders.module';
   ],
   providers: [
     ServiceRequestsService,
+    ServiceRequestMessagesService,
     StorageService,
     ServiceRequestsSseService,
   ],
-  exports: [ServiceRequestsService, ServiceRequestsSseService],
+  exports: [
+    ServiceRequestsService,
+    ServiceRequestsSseService,
+    ServiceRequestMessagesService,
+  ],
 })
 export class ServiceRequestsModule {}

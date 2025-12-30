@@ -19,6 +19,7 @@ export enum ServiceRequestStatus {
   REVIEWING = 'REVIEWING',
   CLARIFICATION_NEEDED = 'CLARIFICATION_NEEDED',
   COMPLETED = 'COMPLETED',
+  REJECTED = 'REJECTED',
   CANCELLED = 'CANCELLED',
   EXPIRED = 'EXPIRED',
 }
@@ -109,6 +110,9 @@ export class ServiceRequest extends BaseEntity {
     nullable: true,
   })
   consultation: Consultation;
+
+  @Column({ type: 'text', nullable: true })
+  cancellationReason: string;
 
   // Ideally rename OrderRequestMessage to ServiceRequestMessage too, but user didn't explicitly ask for that detail,
   // but for consistency we should probably rename logic.

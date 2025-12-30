@@ -1,5 +1,6 @@
 import {
   NotificationPriority,
+  RelatedEntityType,
   SystemNotificationType,
 } from '@/modules/notifications/dto/notification.enum';
 import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
@@ -7,6 +8,7 @@ import { DateColumn } from '../../common/decorators/date-column.decorator';
 import { BaseEntity } from './base.entity';
 import { Provider } from './provider.entity';
 import { Branch } from './branch.entity';
+import { RelatedEntity } from './notification.entity';
 
 export enum NotificationChannel {
   PROVIDER_PORTAL = 'PROVIDER_PORTAL',
@@ -14,7 +16,6 @@ export enum NotificationChannel {
 }
 
 @Index('SYSTEM-NOTIFICATION_BRANCH_IDX', ['branch'])
-@Index('SYSTEM-NOTIFICATION_PROVIDER_IDX', ['provider'])
 @Entity({ name: 'system_notification' })
 export class SystemNotification extends BaseEntity {
   @Column()
@@ -56,10 +57,6 @@ export class SystemNotification extends BaseEntity {
   @JoinColumn()
   branch?: Partial<Branch>;
 
-  @ManyToOne(() => Provider, (provider) => provider.notifications, {
-    onDelete: 'CASCADE',
-    nullable: true,
-  })
-  @JoinColumn()
-  provider?: Partial<Provider>;
+  @Column({ type: 'jsonb', nullable: true })
+  relatedEntity: RelatedEntity;
 }

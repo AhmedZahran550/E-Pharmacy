@@ -7,8 +7,16 @@
     "title": "طلب خدمة جديد",
     "body": "طلب خدمة جديد #{requestNo}"
   },
-  "ORDER_ACCEPTED": {
-    "title": "تم تعيين طبيب",
-    "body": "تم تعيين الدكتور {doctorName} لطلبك."
+  "SERVICE_REQUEST_ACCEPTED": {
+    "title": "تم قبول طلب الخدمة",
+    "body": "تم قبول طلب الخدمة #{requestNo}"
+  },
+  "SERVICE_REQUEST_REJECTED": {
+    "title": "تم رفض طلب الخدمة",
+    "body": "تم رفض طلب الخدمة #{requestNo}"
+  },
+  "NEW_MESSAGE": {
+    "title": "رسالة جديدة",
+    "body": "لديك رسالة جديدة من {senderName}"
   }
 }

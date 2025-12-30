@@ -20,6 +20,9 @@ import { Policy } from '@/modules/auth/policies.types';
 import { Consultation } from './consultation.entity';
 import { ServiceRequest } from './service-request.entity';
 import { Order } from './order.entity';
+import { SystemNotification } from './system-notification.entity';
+import { DeviceToken } from './device-token.entity';
+import { Notification } from './notification.entity';
 
 const LOCKED_DURATION_IN_MINUTES: number = process.env.LOCKED_DURATION
   ? parseInt(process.env.LOCKED_DURATION)
@@ -138,6 +141,12 @@ export class Employee extends BaseEntity {
 
   @Column({ type: 'int', default: 0 })
   totalConsultations: number;
+
+  @OneToMany(() => DeviceToken, (deviceToken) => deviceToken.employee)
+  deviceTokens: DeviceToken[];
+
+  @OneToMany(() => Notification, (notification) => notification.employee)
+  notifications: Notification[];
 
   @BeforeInsert()
   @BeforeUpdate()
