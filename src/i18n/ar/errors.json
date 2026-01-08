@@ -116,5 +116,6 @@
   "CANNOT_DELETE_PRINCIPAL": "لا يمكن حذف العضو الرئيسي للعائلة.",
   "FAMILY_MEMBER_UNAUTHORIZED": "ليس لديك صلاحية لإدارة هذا الفرد من العائلة.",
   "DUPLICATE_RATING": "لقد قمت بتقييم هذا الطبيب بالفعل.",
-  "DOCTOR_NOT_ASSOCIATED_WITH_BRANCH": "الطبيب غير مرتبط بأي فرع."
+  "DOCTOR_NOT_ASSOCIATED_WITH_BRANCH": "الطبيب غير مرتبط بأي فرع.",
+  "UNDEFINED_COLUMN": "قاعدة البيانات غير متزامنة. يرجى تشغيل عمليات الترحيل."
 }

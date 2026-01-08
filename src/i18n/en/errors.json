@@ -116,5 +116,6 @@
   "CANNOT_DELETE_PRINCIPAL": "Cannot delete the principal family member.",
   "FAMILY_MEMBER_UNAUTHORIZED": "You don't have permission to manage this family member.",
   "DUPLICATE_RATING": "You have already rated this doctor.",
-  "DOCTOR_NOT_ASSOCIATED_WITH_BRANCH": "Doctor is not associated with a branch."
+  "DOCTOR_NOT_ASSOCIATED_WITH_BRANCH": "Doctor is not associated with a branch.",
+  "UNDEFINED_COLUMN": "Database schema is out of sync. Please run migrations."
 }

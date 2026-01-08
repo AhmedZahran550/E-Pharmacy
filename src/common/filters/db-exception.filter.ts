@@ -70,6 +70,23 @@ export class DBExceptionFilter implements ExceptionFilter {
             },
           ];
           throw new BadRequestException(message);
+        case DBErrorCode.UNDEFINED_COLUMN:
+          // Extract column name from error message like: column "column_name" of relation "table_name" does not exist
+          const columnMatch = exception.message.match(/column "([^"]+)"/i);
+          const tableMatch = exception.message.match(/relation "([^"]+)"/i);
+          const columnName = columnMatch ? columnMatch[1] : 'unknown';
+          const tableName = tableMatch ? tableMatch[1] : 'unknown';
+          console.error(
+            `[DB Schema Mismatch] Column "${columnName}" does not exist in table "${tableName}". Please run migrations.`,
+          );
+          message = [
+            {
+              property: columnName,
+              table: tableName,
+              code: ErrorCodes.UNDEFINED_COLUMN,
+            },
+          ];
+          throw new BadRequestException(message);
       }
       throw exception;
     } else if (exception instanceof EntityNotFoundError) {

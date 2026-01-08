@@ -13,6 +13,7 @@ export enum DBErrorCode {
   CHECK_VOILATION = '23514',
   INVALID_TEXT_REPRESENTATION = '22P02',
   NOT_NULL_CONSTRAINT = '23502',
+  UNDEFINED_COLUMN = '42703',
 }
 
 export enum ErrorGroup {
@@ -117,6 +118,25 @@ function getError(error: any): AppErrorBase {
         errorCode,
         message,
         statusCode: HttpStatus.BAD_REQUEST,
+        errors,
+      };
+    case DBErrorCode.UNDEFINED_COLUMN:
+      // Extract column name from error message like: column "column_name" of relation "table_name" does not exist
+      const columnMatch = message.match(/column "([^"]+)"/i);
+      const tableMatch = message.match(/relation "([^"]+)"/i);
+      property = columnMatch ? columnMatch[1] : 'unknown';
+      errors = [
+        {
+          property,
+          table: tableMatch ? tableMatch[1] : undefined,
+          code: ErrorCodes.UNDEFINED_COLUMN,
+          message: `The database schema is out of sync. Column '${property}' does not exist.`,
+        },
+      ];
+      return {
+        errorCode,
+        message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
         errors,
       };
     default:
